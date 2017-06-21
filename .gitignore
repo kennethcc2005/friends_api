@@ -100,3 +100,4 @@ ENV/
 
 *.pyc
 settings.py
+api_key_list.config
