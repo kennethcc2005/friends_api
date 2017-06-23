@@ -41,9 +41,9 @@ def get_fulltrip_data(state, city, n_days, full_day = True, regular = True, debu
         not_visited_poi_lst = []
         for i,v in enumerate(day_order):
             if county:
-                day_trip_id = '-'.join([str(state)upper(), str(county.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
+                day_trip_id = '-'.join([str(state).upper(), str(county.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
             else:
-                day_trip_id = '-'.join([str(state)upper(), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
+                day_trip_id = '-'.join([str(state).upper(), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
 
             current_events, big_ix, small_ix, med_ix = [],[],[],[]
             for ix, label in enumerate(day_labels):
