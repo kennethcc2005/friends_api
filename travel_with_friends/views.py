@@ -122,10 +122,11 @@ class OutsideTripSearch(APIView):
             "invalid city result": '%s is not valid city name for state %s' %(city, state),
         })
         print 'outsdie trip: ', city, state, direction
-        outside_trip_id, details = outside_trip_poi(origin_city=city, origin_state=state, target_direction = direction, full_day = True, regular = True, debug = True, username_id = 1)
+        outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city=city, origin_state=state, target_direction = direction, full_day = True, regular = True, debug = True, username_id = 1)
         return Response({
             "outside_trip_id": outside_trip_id,
-            "outside_trip_details": details,
+            "outside_trip_details": outside_trip_details,
+            "outside_route_ids_list": outside_route_ids_list
         })
 
 class CityStateSearch(APIView):
