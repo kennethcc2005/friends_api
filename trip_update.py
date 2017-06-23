@@ -28,13 +28,13 @@ def convert_event_ids_to_lst(event_ids):
     return new_event_ids
 
 def add_search_event(poi_name, trip_location_id):
-    conn = psycopg2.connect(conn_str)   
-    cur = conn.cursor()   
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
     cur.execute("SELECT county, state, event_ids FROM day_trip_table WHERE trip_locations_id  = '%s' LIMIT 1;" %(trip_location_id))  
     county, state, event_ids = cur.fetchone()
     event_ids = convert_event_ids_to_lst(event_ids)
     new_event_ids = tuple(event_ids)
-    cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name))
+    cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county.upper(),state.title(), poi_name))
     # print "SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name)
     results = cur.fetchall()
     poi_ids, poi_lst = [int(row[0]) for row in results], [row[1] for row in results]
@@ -43,7 +43,7 @@ def add_search_event(poi_name, trip_location_id):
     if 7-len(poi_lst)>0:
         event_ids.extend(poi_ids)
         event_ids = str(tuple(event_ids))
-        cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' ORDER BY num_reviews DESC LIMIT {3};".format(event_ids, county,state, 7-len(poi_lst)))
+        cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' ORDER BY num_reviews DESC LIMIT {3};".format(event_ids, county.upper(), state.title(), 7-len(poi_lst)))
         results.extend(cur.fetchall())
     poi_dict = {d[1]:d[0] for d in results}
     poi_names = [d[1] for d in results]
