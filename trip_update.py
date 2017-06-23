@@ -5,11 +5,11 @@ import simplejson
 import urllib
 import json
 import re
-
 from helpers import *
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-with open(os.path.join(BASE_DIR, 'travel_with_friends_api/api_key_list.config')) as key_file:
+
+current_path= os.getcwd()
+with open(current_path + '/api_key_list.config') as key_file:
     api_key_list = json.load(key_file)
 api_key = api_key_list["distance_api_key_list"]
 conn_str = api_key_list["conn_str"]
@@ -34,8 +34,8 @@ def add_search_event(poi_name, trip_location_id):
     county, state, event_ids = cur.fetchone()
     event_ids = convert_event_ids_to_lst(event_ids)
     new_event_ids = tuple(event_ids)
-    cur.execute("SELECT index, name FROM poi_detail_table_v2 WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name))
-    # print "SELECT index, name FROM poi_detail_table_v2 WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name)
+    cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name))
+    # print "SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' and name % '{3}' ORDER BY similarity(name, '{3}') DESC LIMIT 7;".format(new_event_ids, county,state, poi_name)
     results = cur.fetchall()
     poi_ids, poi_lst = [int(row[0]) for row in results], [row[1] for row in results]
     # poi_ids = convert_event_ids_to_lst(poi_ids)
@@ -43,7 +43,7 @@ def add_search_event(poi_name, trip_location_id):
     if 7-len(poi_lst)>0:
         event_ids.extend(poi_ids)
         event_ids = str(tuple(event_ids))
-        cur.execute("SELECT index, name FROM poi_detail_table_v2 WHERE index NOT IN {0} AND county='{1}' AND state='{2}' ORDER BY num_reviews DESC LIMIT {3};".format(event_ids, county,state, 7-len(poi_lst)))
+        cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND county='{1}' AND state='{2}' ORDER BY num_reviews DESC LIMIT {3};".format(event_ids, county,state, 7-len(poi_lst)))
         results.extend(cur.fetchall())
     poi_dict = {d[1]:d[0] for d in results}
     poi_names = [d[1] for d in results]
@@ -107,7 +107,7 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             else:
                 event_day = ast.literal_eval(day_details[0])['day']
             for item in event_ids:
-                cur.execute("select index, name, address, coord_lat, coord_long, city, state from poi_detail_table_v2 where index = '%s';" %(item))
+                cur.execute("select index, name, address, coord_lat, coord_long, city, state from poi_detail_table where index = '%s';" %(item))
                 a = cur.fetchone()
                 detail = {"name": a[1], "day": event_day, "coord_lat": a[3], "coord_long": a[4],'address': a[2],  'id': a[0], 'city': a[5], 'state': a[6] }
                 details.append(detail)
@@ -280,23 +280,23 @@ def suggest_event_array(full_trip_id, trip_location_id, switch_event_id, usernam
     cur.execute("SELECT event_ids FROM day_trip_table WHERE trip_locations_id  = '%s' LIMIT 1;" %(trip_location_id))  
     old_event_ids = convert_event_ids_to_lst(cur.fetchone()[0])
     old_event_ids = map(int, old_event_ids)
-    cur.execute("SELECT index, name, coord_lat, coord_long,poi_type, adjusted_visit_length,num_reviews FROM poi_detail_table_v2 where index=%s;" %(switch_event_id))
+    cur.execute("SELECT index, name, coord_lat, coord_long,poi_type, adjusted_visit_length,num_reviews FROM poi_detail_table where index=%s;" %(switch_event_id))
     index, name, coord_lat, coord_long,poi_type, adjusted_normal_time_spent,num_reviews = cur.fetchone()
     event_type = event_type_time_spent(adjusted_normal_time_spent)
     
     if event_type == 'big':
-        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>180 and poi_type='{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
+        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>180 and poi_type='{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
     elif event_type == 'med':
-        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>=120 and adjusted_visit_length<=180 and poi_type='{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
+        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>=120 and adjusted_visit_length<=180 and poi_type='{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
     else:
-        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length<120 and poi_type = '{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
+        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length<120 and poi_type = '{0}' and index NOT IN {3} ORDER BY num_reviews LIMIT 7;".format(poi_type, coord_long,coord_lat,tuple(old_event_ids)))
     suggest_event_lst = cur.fetchall()
     rank_one_idx = [x[0] for x in suggest_event_lst]
     old_event_ids.extend(rank_one_idx)
     old_event_ids = map(int, old_event_ids)
     limit_len = min(7- len(suggest_event_lst), 3)
     if limit_len:
-        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and poi_type='{0}' and index not in {3} ORDER BY num_reviews LIMIT {4};".format(poi_type, coord_long,coord_lat, tuple(old_event_ids), limit_len))
+        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and poi_type='{0}' and index not in {3} ORDER BY num_reviews LIMIT {4};".format(poi_type, coord_long,coord_lat, tuple(old_event_ids), limit_len))
         add_suggest_lst = cur.fetchall()
         if add_suggest_lst:
             suggest_event_lst.extend(add_suggest_lst)
@@ -306,11 +306,11 @@ def suggest_event_array(full_trip_id, trip_location_id, switch_event_id, usernam
             old_event_ids = map(int, old_event_ids)
             if limit_len:
                 if event_type == 'big':
-                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>180 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
+                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>180 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
                 elif event_type == 'med':
-                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>=120 and adjusted_visit_length<=180 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
+                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length>=120 and adjusted_visit_length<=180 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
                 else:
-                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length<120 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
+                    cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 10 * 1609.34 and adjusted_visit_length<120 and index NOT IN {3} ORDER BY num_reviews LIMIT {0};".format(limit_len, coord_long,coord_lat,tuple(old_event_ids)))
                 add_suggest_lst = cur.fetchall()
                 if add_suggest_lst:
                     suggest_event_lst.extend(add_suggest_lst)
@@ -318,7 +318,7 @@ def suggest_event_array(full_trip_id, trip_location_id, switch_event_id, usernam
                         rank_one_idx = [x[0] for x in suggest_event_lst]
                         old_event_ids.extend(rank_one_idx)
                         old_event_ids = map(int, old_event_ids)
-                        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table_v2 WHERE poi_type='{0}' and index not in {3} ORDER BY ST_Distance_Sphere(geom, ST_MakePoint({1},{2}))   LIMIT {4};".format(poi_type, coord_long,coord_lat, tuple(old_event_ids), 7- len(suggest_event_lst)))
+                        cur.execute("SELECT index, name, city, state, coord_lat, coord_long, address FROM poi_detail_table WHERE poi_type='{0}' and index not in {3} ORDER BY ST_Distance_Sphere(geom, ST_MakePoint({1},{2}))   LIMIT {4};".format(poi_type, coord_long,coord_lat, tuple(old_event_ids), 7- len(suggest_event_lst)))
     suggest_dict_list = []
     for i, v in enumerate(suggest_event_lst):
         suggest_dict_list.append({"id": v[0], "name": v[1], "city": v[2], "state": v[3], "coord_lat": v[4], "coord_long": v[5],

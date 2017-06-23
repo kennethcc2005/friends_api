@@ -4,7 +4,6 @@ import simplejson
 import urllib
 import numpy as np
 import os
-
 import distance
 from collections import Counter
 
