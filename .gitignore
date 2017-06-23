@@ -99,3 +99,5 @@ ENV/
 .mypy_cache/
 
 *.pyc
+settings.py
+api_key_list.config
