@@ -5,6 +5,7 @@ import urllib
 import numpy as np
 import os
 import distance
+import re
 from collections import Counter
 
 current_path= os.getcwd()
