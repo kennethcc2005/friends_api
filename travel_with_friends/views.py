@@ -324,7 +324,7 @@ class IPGeoLocation(APIView):
         serializer.is_valid(raise_exception=True)
         # Get the model input
         data = serializer.validated_data
-
+        print 'ip data: ', data, data['ip']
         country_code, country_name, region_name, city_name = find_ip_geo_location(data['ip'])
         return Response({
             "country_code": country_code,
