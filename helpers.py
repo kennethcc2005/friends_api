@@ -4,7 +4,8 @@ import simplejson
 import urllib
 import numpy as np
 import os
-
+import ast
+import re
 import distance
 from collections import Counter
 
@@ -398,9 +399,9 @@ def db_day_trip_details(event_ids, i):
     details = []
     #details dict includes: id, name,address, day
     for event_id in event_ids:
-        cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state,icon_url, check_full_address, poi_type, adjusted_visit_length FROM poi_detail_table WHERE index = %s;" % (event_id))
+        cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state, icon_url, check_full_address, poi_type, adjusted_visit_length, img_url FROM poi_detail_table WHERE index = %s;" % (event_id))
         a = cur.fetchone()
-        details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'incon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10]})
+        details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11]})
     conn.close()
     return details
 
@@ -452,16 +453,20 @@ def find_ip_geo_location(ip_address):
 def convert_event_ids_to_lst(event_ids):
     try:
         if type(ast.literal_eval(event_ids)) == list:
-            new_event_ids = map(int, ast.literal_eval(event_ids))
+            event_ids = map(float, ast.literal_eval(event_ids))
+            new_event_ids = map(int, (event_ids))
         else: 
             event_ids = re.sub("\s+", ",", event_ids.strip())
             event_ids = event_ids.replace('.', '')
-            new_event_ids = map(int, event_ids.strip('[').strip(']').strip(',').split(','))
+            event_ids = map(float, event_ids.strip('[').strip(']').strip(',').split(','))
+            new_event_ids = map(int, (event_ids))
     except:
         event_ids = re.sub("\s+", ",", event_ids.strip())
         event_ids = event_ids.replace('.', '')
-        new_event_ids = map(int, event_ids.strip('[').strip(']').strip(',').split(','))
-    return new_event_ids
+        event_ids = map(float, event_ids.strip('[').strip(']').strip(',').split(','))
+        new_event_ids = map(int, (event_ids))
+        return new_event_ids
+
 
 def abb_to_full_state(state):
     

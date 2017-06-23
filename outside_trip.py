@@ -67,7 +67,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         route_labels = kmeans.labels_
         # print n_routes, len(route_labels), city_infos.shape
         # print route_labels
-        outside_route_ids, outside_trip_details, details_theme, event_id_lst =[], [], [], []
+        outside_route_ids_list, outside_trip_details, details_theme, event_id_list =[], [], [], []
         for i in range(n_routes):
             current_events, big_ix, med_ix, small_ix = [], [], [], []
             for ix, label in enumerate(route_labels):
@@ -106,12 +106,21 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             
             details_theme.append(route_theme)
 
-            outside_route_ids.append(outside_route_id)
-            outside_trip_details.extend(details)
-            event_id_lst.extend(event_ids)
+
+
         info_to_psql = outside_helpers.clean_details(details_theme)
+
         for info in info_to_psql:
+            # print " : ", len(info_to_psql)
             outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme = info
+            # print "route_theme: ", route_theme, " event_ids: ", event_ids
+            # print ""
+            # print info_details
+            # print ""
+            outside_trip_details.append(info_details)
+            outside_route_ids_list.extend(outside_route_id)
+            event_id_list.append(event_ids)
+
 
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
@@ -123,28 +132,27 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
 
 
 
-            outside_trip_details.extend(details)
 
         username_id = 1
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, details, visible) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s', %s);" % (new_index, username_id, outside_trip_id, str(outside_route_ids).replace("'","''"), str(event_id_lst), origin_city, origin_state, target_direction, n_routes, regular, full_day, str(outside_trip_details).replace("'", "''"), visible))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, details, visible) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s', %s);" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), str(event_id_list).replace("'", "''"), origin_city, origin_state, target_direction, n_routes, regular, full_day, str(outside_trip_details).replace("'", "''"), visible))
 
         conn.commit()
         conn.close()
         print "finish update %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
-        return outside_trip_id, outside_trip_details
+        return outside_trip_id, outside_trip_details, outside_route_ids_list
     else:
         print "ALERT: %s, %s, direction %s already in database" % (origin_state, origin_city, target_direction)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT DISTINCT outside_trip_id, details FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
-        outside_trip_id, details = cur.fetchone()
+        cur.execute("SELECT DISTINCT outside_trip_id, details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
+        outside_trip_id, details, outside_route_ids_list= cur.fetchone()
         details = ast.literal_eval(details)
         conn.close()
-        return outside_trip_id, details
+        return outside_trip_id, details, outside_route_ids_list
 
 if __name__ == '__main__':
     import time
@@ -156,6 +164,10 @@ if __name__ == '__main__':
     origin_state = 'California'
     print origin_city, origin_state
     for target_direction in direct:
-        outside_trip_poi(origin_city,origin_state, target_direction)
-
+        outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
+        # print "outside_trip_id: ", outside_trip_id
+        # print ""
+        # print "outside_trip_details: ", outside_trip_details
+        # print ""
+        # print "outside_route_ids: ", outside_route_ids_list
     print time.time()- start_t

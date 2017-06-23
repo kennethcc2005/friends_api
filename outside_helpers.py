@@ -257,9 +257,9 @@ def db_outside_route_trip_details(event_ids, route_i):
     details = []
     #details dict includes: id, name,address, day
     for event_id in event_ids:
-        cur.execute("SELECT index, name, address, coord_lat, coord_long, poi_type, adjusted_visit_length, num_reviews, ranking, review_score, icon_url, check_full_address, city, state FROM poi_detail_table WHERE index = %s;" %(event_id))
+        cur.execute("SELECT index, name, address, coord_lat, coord_long, poi_type, adjusted_visit_length, num_reviews, ranking, review_score, icon_url, check_full_address, city, state , img_url FROM poi_detail_table WHERE index = %s;" %(event_id))
         a = cur.fetchone()
-        details.append({'id': a[0], 'name': a[1], 'address': a[2], 'coord_lat': a[3], 'coord_long':a[4], 'route': route_i, 'poi_type': a[5], 'adjusted_visit_length': a[6], 'num_reviews': a[7], 'ranking': a[8], 'review_score': a[9], 'incon_url': a[10], 'check_full_address': a[11], 'city': a[12], 'state': a[13]})
+        details.append({'id': a[0], 'name': a[1], 'address': a[2], 'coord_lat': a[3], 'coord_long':a[4], 'route': route_i, 'poi_type': a[5], 'adjusted_visit_length': a[6], 'num_reviews': a[7], 'ranking': a[8], 'review_score': a[9], 'icon_url': a[10], 'check_full_address': a[11], 'city': a[12], 'state': a[13], 'img_url': a[14]})
     conn.close()
     return details
 
@@ -569,7 +569,7 @@ def assign_theme(details):
                 assign_dict4[key].append(float(i[4]))
 
 
-    assign_dict = sort_dict(assign_dict) #order descending 
+    assign_dict = sort_dict(assign_dict) #order descending  by time
 
     # theme1 = assign_dict[0][1]
     # theme2 = assign_dict[1][1]
@@ -585,7 +585,7 @@ def assign_theme(details):
         else:
             return [assign_dict[1][1], assign_dict2[assign_dict[1][1]], assign_dict3[assign_dict[1][1]], avg_list(assign_dict4[assign_dict[1][1]])]
 
-    #return [theme, num of review, ranking, review_score, details]
+    #return [theme, num of review, ranking, review_score]
     return [assign_dict[0][1], assign_dict2[assign_dict[0][1]], assign_dict3[assign_dict[0][1]], avg_list(assign_dict4[assign_dict[0][1]])]
 
 def sort_dict(input_dict):
@@ -616,5 +616,9 @@ def clean_details(details_theme):
             theme_SELECT_dict[i[0]] = 1
             final.append(i[4:])
         else:
-            backup.extend(i[4:])
+            backup.append(i[4:])
+
+    # while len(final) < 6:  #if less then 6 route, pick route from backup
+    #     final.append(backup.pop(0))
+
     return final
