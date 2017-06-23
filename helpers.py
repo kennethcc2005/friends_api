@@ -398,9 +398,9 @@ def db_day_trip_details(event_ids, i):
     details = []
     #details dict includes: id, name,address, day
     for event_id in event_ids:
-        cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state,icon_url, check_full_address, poi_type, adjusted_time_spent FROM poi_detail_table WHERE index = %s;" % (event_id))
+        cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state,icon_url, check_full_address, poi_type, adjusted_visit_length FROM poi_detail_table WHERE index = %s;" % (event_id))
         a = cur.fetchone()
-        details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'incon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_time_spent': a[10]})
+        details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'incon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10]})
     conn.close()
     return details
 
