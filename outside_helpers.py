@@ -274,23 +274,23 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
     driving_time_list = []
     walking_time_list = []
     name_list = []
+    api_i = 0
     city_to_poi_id = str(city_id) + '0000' + str(event_ids[0])
     if not check_city_to_poi(city_to_poi_id):
         cur.execute("SELECT name, coord_lat, coord_long FROM poi_detail_table WHERE index = %s;" % (event_ids[0]))
         dest_name, dest_coord_lat, dest_coord_long = cur.fetchone()
         orig_coords = str(start_coord_lat) + ',' + str(start_coord_long)
         dest_coords = str(dest_coord_lat) + ',' + str(dest_coord_long)
-        google_driving_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=en-EN&sensor=false&key={2}".format(orig_coords.replace(' ', ''), dest_coords.replace(' ', ''), api_key[0])
-        google_walking_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=walking&language=en-EN&sensor=false&key={2}".format(orig_coords.replace(' ',''), dest_coords.replace(' ', ''), api_key[0])
-        driving_result = simplejson.load(urllib.urlopen(google_driving_url))
-        walking_result = simplejson.load(urllib.urlopen(google_walking_url))
-        orig_name = origin_city.upper().replace(' ', '+').replace('-', '+') + '+' + origin_state.upper().replace(' ', '+').replace('-', '+')
-        if driving_result['rows'][0]['elements'][0]['status'] == 'ZERO_RESULTS':
-            google_driving_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=en-EN&sensor=false&key={2}".format(orig_name, dest_name.replace(' ', '+').replace('-', '+'), api_key[0])
-            driving_result= simplejson.load(urllib.urlopen(google_driving_url))
-        if walking_result['rows'][0]['elements'][0]['status'] == 'ZERO_RESULTS':
-            google_walking_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=walking&language=en-EN&sensor=false&key={2}".format(orig_name, dest_name.replace(' ', '+').replace('-', '+'), api_key[0])
-            walking_result= simplejson.load(urllib.urlopen(google_walking_url))
+        orig_name = origin_city
+        google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
+        while google_result == False:
+            api_i += 1
+            if api_i > len(api_key):
+                print "all api_key are used"
+            else:
+                google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
+        driving_result, walking_result, google_driving_url, google_walking_url = google_result
+
         if (driving_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND') and (walking_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND'):
             new_event_ids = list(event_ids)
             new_event_ids.pop(0)
@@ -340,18 +340,9 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
             dest_idx = event_ids[i+1]
             orig_coords = str(orig_coord_lat) + ',' + str(orig_coord_long)
             dest_coords = str(dest_coord_lat) + ',' + str(dest_coord_long)
-            google_driving_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=en-EN&sensor=false&key={2}".format(orig_coords.replace(' ',''), dest_coords.replace(' ', ''), api_key[0])
-            google_walking_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=walking&language=en-EN&sensor=false&key={2}".format(orig_coords.replace(' ',''), dest_coords.replace(' ', ''), api_key[0])
-                
-            driving_result= simplejson.load(urllib.urlopen(google_driving_url))
-            walking_result= simplejson.load(urllib.urlopen(google_walking_url))
-            if driving_result['rows'][0]['elements'][0]['status'] == 'ZERO_RESULTS':
-                google_driving_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=en-EN&sensor=false&key={2}".format(orig_name.replace(' ', '+').replace('-', '+'), dest_name.replace(' ','+').replace('-','+'), api_key[0])
-                driving_result= simplejson.load(urllib.urlopen(google_driving_url))
-                
-            if walking_result['rows'][0]['elements'][0]['status'] == 'ZERO_RESULTS':
-                google_walking_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=walking&language=en-EN&sensor=false&key={2}".format(orig_name.replace(' ', '+').replace('-', '+'), dest_name.replace(' ','+').replace('-','+'), api_key[0])
-                walking_result= simplejson.load(urllib.urlopen(google_walking_url))
+
+            google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
+            driving_result, walking_result, google_driving_url, google_walking_url = google_result
             if (driving_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND') and (walking_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND'):
                 new_event_ids = list(event_ids)
                 new_event_ids.pop(i+1)

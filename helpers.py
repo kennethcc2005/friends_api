@@ -269,9 +269,10 @@ def db_google_driving_walking_time(event_ids, event_type):
             google_result = find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
             while google_result == False:
                 api_i += 1
-                if api_i > 6:
+                if api_i > len(api_key):
                     print "all api_key are used"
-                google_result = find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
+                    
+            google_result = find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
             driving_result, walking_result, google_driving_url, google_walking_url = google_result
 
             if (driving_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND') and (walking_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND'):

@@ -111,14 +111,14 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         info_to_psql = outside_helpers.clean_details(details_theme)
 
         for info in info_to_psql:
-            # print " : ", len(info_to_psql)
+            print " : ", len(info_to_psql)
             outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme = info
             # print "route_theme: ", route_theme, " event_ids: ", event_ids
             # print ""
             # print info_details
             # print ""
             outside_trip_details.append(info_details)
-            outside_route_ids_list.extend(outside_route_id)
+            outside_route_ids_list.append(outside_route_id)
             event_id_list.append(event_ids)
 
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # print dir(outside_helpers)
 
     direct = ["E","S","W","N"]
-    origin_city = 'San Francisco'
+    origin_city = 'San Jose'
     origin_state = 'California'
     print origin_city, origin_state
     for target_direction in direct:
@@ -169,5 +169,5 @@ if __name__ == '__main__':
         # print ""
         # print "outside_trip_details: ", outside_trip_details
         # print ""
-        # print "outside_route_ids: ", outside_route_ids_list
+        print "outside_route_ids_list: ", outside_route_ids_list
     print time.time()- start_t
