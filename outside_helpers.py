@@ -6,7 +6,7 @@ import numpy as np
 import distance
 import math
 import helpers
-import us_state_abbrevation
+from us_state_abbrevation import *
 
 with open('api_key_list.config') as key_file:
     api_key_list = json.load(key_file)
@@ -627,6 +627,6 @@ def clean_details(details_theme):
 
 def check_state(origin_state):
     if not helpers.check_valid_state(origin_state):
-        origin_state = us_state_abbrevation.abb2state[origin_state]
+        origin_state = abb2state[origin_state]
     return origin_state
 
