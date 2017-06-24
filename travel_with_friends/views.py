@@ -111,6 +111,7 @@ class OutsideTripSearch(APIView):
         city = data["city"].replace('_',' ').title()
         state = data["state"].replace('_',' ').title()
         direction = data["direction"].upper()
+        state = abb_to_full_state(state)
         valid_state = check_valid_state(state)
         if not valid_state:
             return Response({
