@@ -285,7 +285,7 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
         google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
         while google_result == False:
             api_i += 1
-            if api_i > len(api_key):
+            if api_i > len(api_key)-1:
                 print "all api_key are used"
             else:
                 google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
