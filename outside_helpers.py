@@ -3,12 +3,10 @@ import psycopg2
 import ast
 import json
 import numpy as np
-import simplejson
-import urllib
 import distance
 import math
 import helpers
-from us_state_abbrevation import *
+import us_state_abbrevation
 
 with open('api_key_list.config') as key_file:
     api_key_list = json.load(key_file)
@@ -629,6 +627,6 @@ def clean_details(details_theme):
 
 def check_state(origin_state):
     if not helpers.check_valid_state(origin_state):
-        origin_state = abb2state[origin_state]
+        origin_state = us_state_abbrevation.abb2state[origin_state]
     return origin_state
 

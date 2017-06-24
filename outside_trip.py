@@ -27,7 +27,10 @@ outside route table: route_id, event_id_lst, event_type, origin_city, state, dir
 def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1, full_day=True, regular=True, debug=True, username_id=1, visible=True):
     outside_trip_id = '-'.join([str(origin_state.upper().replace(' ', '-')), str(origin_city.upper().replace(' ', '-')), target_direction,str(int(regular)), str(n_days)])
 
+    print origin_state
     origin_state = outside_helpers.check_state(origin_state)
+    print origin_state
+
     if not outside_helpers.check_outside_trip_id(outside_trip_id, debug):
         furthest_len = 100
         if n_days == 1:
