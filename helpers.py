@@ -473,7 +473,7 @@ def convert_event_ids_to_lst(event_ids):
 def abb_to_full_state(state):
     
     #may need to check by using dict.
-
+    # please see outside.helpers.check_state()
 
     '''
     Convert state_abb to full state name

@@ -8,6 +8,7 @@ import urllib
 import distance
 import math
 import helpers
+from us_state_abbrevation import *
 
 with open('api_key_list.config') as key_file:
     api_key_list = json.load(key_file)
@@ -17,6 +18,7 @@ conn_str = api_key_list["conn_str"]
 def ajax_available_events(county, state):
     county=county.upper()
     state = state.title()
+
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor() 
     cur.execute("SELECT index, name FROM poi_detail_table WHERE county='%s' AND state='%s';" % (county, state))
@@ -342,6 +344,12 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
             dest_coords = str(dest_coord_lat) + ',' + str(dest_coord_long)
 
             google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
+            while google_result == False:
+                api_i += 1
+                if api_i > len(api_key)-1:
+                    print "all api_key are used"
+                else:
+                    google_result = helpers.find_google_result(orig_coords, dest_coords, orig_name, dest_name, api_i)
             driving_result, walking_result, google_driving_url, google_walking_url = google_result
             if (driving_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND') and (walking_result['rows'][0]['elements'][0]['status'] == 'NOT_FOUND'):
                 new_event_ids = list(event_ids)
@@ -573,7 +581,7 @@ def assign_theme(details):
             return [assign_dict[1][1], assign_dict2[assign_dict[1][1]], assign_dict3[assign_dict[1][1]], avg_list(assign_dict4[assign_dict[1][1]])]
         elif assign_dict3[assign_dict[0][1]] < assign_dict3[assign_dict[1][1]]: #check for ranking
             return [assign_dict[0][1], assign_dict2[assign_dict[0][1]], assign_dict3[assign_dict[0][1]], avg_list(assign_dict4[assign_dict[0][1]])]
-        else:
+        elif assign_dict3[assign_dict[0][1]] > assign_dict3[assign_dict[1][1]]:
             return [assign_dict[1][1], assign_dict2[assign_dict[1][1]], assign_dict3[assign_dict[1][1]], avg_list(assign_dict4[assign_dict[1][1]])]
 
     #return [theme, num of review, ranking, review_score]
@@ -586,7 +594,11 @@ def sort_dict(input_dict):
 
 def avg_list(l):
     #for finding avg of review socre
-    return sum(l) / len(l)
+    if len(l) != 0:
+        return sum(l) / len(l)
+    else:
+        return 0
+
 
 def clean_details(details_theme):
     details_array= np.array(details_theme)
@@ -598,7 +610,8 @@ def clean_details(details_theme):
             final.append(i[4:])
             used.append(count)
     details_array = np.delete(details_array, used, axis=0)
-    a = np.array(sorted(details_array, key=lambda x: (x[2].astype(np.int), -x[1].astype(np.float), x[3].astype(np.float))))
+    # a = np.array(sorted(details_array, key=lambda x: (x[2].astype(np.int), -x[1].astype(np.float), x[3].astype(np.float))))
+    a = np.array(sorted(details_array, key=lambda x: (x[2], -x[1], x[3])))
 
     theme_SELECT_dict = {}
     backup = []
@@ -613,3 +626,9 @@ def clean_details(details_theme):
     #     final.append(backup.pop(0))
 
     return final
+
+def check_state(origin_state):
+    if not helpers.check_valid_state(origin_state):
+        origin_state = abb2state[origin_state]
+    return origin_state
+

@@ -26,7 +26,8 @@ outside route table: route_id, event_id_lst, event_type, origin_city, state, dir
 
 def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1, full_day=True, regular=True, debug=True, username_id=1, visible=True):
     outside_trip_id = '-'.join([str(origin_state.upper().replace(' ', '-')), str(origin_city.upper().replace(' ', '-')), target_direction,str(int(regular)), str(n_days)])
-    
+
+    origin_state = outside_helpers.check_state(origin_state)
     if not outside_helpers.check_outside_trip_id(outside_trip_id, debug):
         furthest_len = 100
         if n_days == 1:
@@ -101,7 +102,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             details = outside_helpers.db_outside_route_trip_details(event_ids, i)
 
             route_theme = outside_helpers.assign_theme(details)
-            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, str(details).replace("'", "''"), event_type, str(event_ids), i, route_theme[0]]
+            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, str(event_ids), i, route_theme[0]]
             route_theme.extend(info)
             
             details_theme.append(route_theme)
@@ -126,7 +127,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('select max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details , event_type, str(event_ids), i, route_theme))
+            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, str(info_details).replace("'", "''") , event_type, str(event_ids), i, route_theme))
             conn.commit()
             conn.close()
 
@@ -138,7 +139,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, details, visible) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s', %s);" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), str(event_id_list).replace("'", "''"), origin_city, origin_state, target_direction, n_routes, regular, full_day, str(outside_trip_details).replace("'", "''"), visible))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details, visible) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s', %s);" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), str(event_id_list).replace("'", "''"), origin_city, origin_state, target_direction, n_routes, regular, full_day, str(outside_trip_details).replace("'", "''"), visible))
 
         conn.commit()
         conn.close()
@@ -148,11 +149,13 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         print "ALERT: %s, %s, direction %s already in database" % (origin_state, origin_city, target_direction)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT DISTINCT outside_trip_id, details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
-        outside_trip_id, details, outside_route_ids_list= cur.fetchone()
-        details = ast.literal_eval(details)
+        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
+        outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
+        outside_trip_details = ast.literal_eval(outside_trip_details)
+        outside_route_ids_list = ast.literal_eval(outside_route_ids_list)
+
         conn.close()
-        return outside_trip_id, details, outside_route_ids_list
+        return outside_trip_id, outside_trip_details, outside_route_ids_list
 
 if __name__ == '__main__':
     import time
@@ -161,13 +164,14 @@ if __name__ == '__main__':
 
     direct = ["E","S","W","N"]
     origin_city = 'San Jose'
-    origin_state = 'California'
+    origin_state = 'CA'
     print origin_city, origin_state
-    for target_direction in direct:
+    for target_direction in direct[1]:
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
         # print "outside_trip_id: ", outside_trip_id
         # print ""
-        # print "outside_trip_details: ", outside_trip_details
-        # print ""
-        print "outside_route_ids_list: ", outside_route_ids_list
+        print "outside_trip_details: ", type(outside_trip_details), type(outside_trip_details[0]), type(outside_trip_details[0][0])
+       
+        # print type(ast.literal_eval(outside_trip_details[0].replace("''", '"'))[0])
+        print "outside_route_ids_list: ", type(outside_route_ids_list), type(outside_route_ids_list[0])
     print time.time()- start_t
