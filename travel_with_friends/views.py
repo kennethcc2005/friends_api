@@ -112,7 +112,7 @@ class OutsideTripSearch(APIView):
         state = data["state"].replace('_',' ').title()
         direction = data["direction"].upper()
         print state
-        state = abb_to_full_state(state)
+        state = check_state(state)
         print state
         valid_state = check_valid_state(state)
         if not valid_state:
