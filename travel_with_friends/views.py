@@ -75,7 +75,10 @@ class FullTripSearch(APIView):
         city = data["city"]
         state = data["state"]
         n_days = data["n_days"]
-        state = abb_to_full_state(state)
+        # state = abb_to_full_state(state)
+        print state
+        state = check_state(state)
+        print state
         valid_state = check_valid_state(state)
         if not valid_state:
             return Response({
