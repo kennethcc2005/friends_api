@@ -77,16 +77,15 @@ class FullTripSearch(APIView):
         n_days = data["n_days"]
         # state = abb_to_full_state(state)
         state = check_state(state)
-        valid_state = check_valid_state(state)
-        if not valid_state:
+        if not state:
             return Response({
-            "state": '%s is not a valid state name' %(state),
+            "state": '%s is not a valid state name' % (state),
         }, status=400)
         print "city state: ", city, state
         valid_city = check_valid_city(city, state)
         if not valid_city:
             return Response({
-            "city": '%s is not valid city name for state %s' %(city, state),
+            "city": '%s is not valid city name for state %s' % (city, state),
         }, status=400)
         full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(state=state, city=city, n_days=n_days)
         
@@ -114,8 +113,7 @@ class OutsideTripSearch(APIView):
         state = data["state"].replace('_',' ').title()
         direction = data["direction"].upper()
         state = check_state(state)
-        valid_state = check_valid_state(state)
-        if not valid_state:
+        if not state:
 
             return Response({
             "state": '%s is not a valid state name' %(state),
