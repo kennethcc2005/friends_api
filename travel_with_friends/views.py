@@ -76,14 +76,13 @@ class FullTripSearch(APIView):
         state = data["state"]
         n_days = data["n_days"]
         # state = abb_to_full_state(state)
-        print state
         state = check_state(state)
-        print state
         valid_state = check_valid_state(state)
         if not valid_state:
             return Response({
             "invalid state result": '%s is not a valid state name' %(state),
         })
+        print "city state: ", city, state
         valid_city = check_valid_city(city, state)
         if not valid_city:
             return Response({
@@ -114,9 +113,7 @@ class OutsideTripSearch(APIView):
         city = data["city"].replace('_',' ').title()
         state = data["state"].replace('_',' ').title()
         direction = data["direction"].upper()
-        print state
         state = check_state(state)
-        print state
         valid_state = check_valid_state(state)
         if not valid_state:
             return Response({
