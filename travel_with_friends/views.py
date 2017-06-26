@@ -80,14 +80,14 @@ class FullTripSearch(APIView):
         valid_state = check_valid_state(state)
         if not valid_state:
             return Response({
-            "invalid state result": '%s is not a valid state name' %(state),
-        })
+            "state": '%s is not a valid state name' %(state),
+        }, status=400)
         print "city state: ", city, state
         valid_city = check_valid_city(city, state)
         if not valid_city:
             return Response({
-            "invalid city result": '%s is not valid city name for state %s' %(city, state),
-        })
+            "city": '%s is not valid city name for state %s' %(city, state),
+        }, status=400)
         full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(state=state, city=city, n_days=n_days)
         
         return Response({
@@ -116,14 +116,15 @@ class OutsideTripSearch(APIView):
         state = check_state(state)
         valid_state = check_valid_state(state)
         if not valid_state:
+
             return Response({
-            "invalid state result": '%s is not a valid state name' %(state),
-        })
+            "state": '%s is not a valid state name' %(state),
+        }, status=400)
         valid_city = check_valid_city(city, state)
         if not valid_city:
             return Response({
-            "invalid city result": '%s is not valid city name for state %s' %(city, state),
-        })
+            "city": '%s is not valid city name for state %s' %(city, state),
+        }, status=400)
         print 'outsdie trip: ', city, state, direction
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city=city, origin_state=state, target_direction = direction, full_day = True, regular = True, debug = True, username_id = 1)
         return Response({
