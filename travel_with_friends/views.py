@@ -79,13 +79,13 @@ class FullTripSearch(APIView):
         checked_state = check_state(state)
         if not checked_state:
             return Response({
-            "location_error": '%s is not a valid state name' % (state),
+            "error_location": '%s is not a valid state name' % (state),
         }, status=400)
 
         valid_city = check_valid_city(city, checked_state)
         if not valid_city:
             return Response({
-            "location_error": '%s is not valid city name for state %s' % (city, checked_state),
+            "error_location": '%s is not valid city name for state %s' % (city, checked_state),
         }, status=400)
         full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(state=checked_state, city=city, n_days=n_days)
         
@@ -115,12 +115,12 @@ class OutsideTripSearch(APIView):
         checked_state = check_state(state)
         if not checked_state:
             return Response({
-            "location_error": '%s is not a valid state name' %(state),
+            "error_location": '%s is not a valid state name' %(state),
         }, status=400)
         valid_city = check_valid_city(city, checked_state)
         if not valid_city:
             return Response({
-            "location_error": '%s is not valid city name for state %s' %(city, checked_state),
+            "error_location": '%s is not valid city name for state %s' %(city, checked_state),
         }, status=400)
         # print 'outsdie trip: ', city, state, direction
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city=city, origin_state=checked_state, target_direction = direction, full_day = True, regular = True, debug = True, username_id = 1)
@@ -255,6 +255,11 @@ class FullTripSuggestArray(APIView):
         trip_location_id = data["trip_location_id"]
         username_id = 1
         suggest_event_array = trip_update.suggest_event_array(full_trip_id, trip_location_id, event_id, username_id)
+        if not suggest_event_array:
+            return Response({
+            "error_no_suggestion": 'not enough items to re-suggest'
+        }, status=400)
+
         return Response({
             "suggest_event_array": suggest_event_array,
         })
