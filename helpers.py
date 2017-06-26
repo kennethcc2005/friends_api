@@ -64,9 +64,9 @@ def db_start_location(county, state, city):
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
     if county:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE county = '%s' AND state = '%s' AND NOT poi_type = 'Tour';" % (county.upper(), state.title()))
+        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE county = '%s' AND state = '%s' AND NOT poi_type = 'Tour' AND NOT poi_type = 'Other';" % (county.upper(), state.title()))
     else:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city = '%s' AND state = '%s' AND NOT poi_type = 'Tour';" % (city.title(), state.title()))
+        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city = '%s' AND state = '%s' AND NOT poi_type = 'Tour' AND NOT poi_type = 'Other';" % (city.title(), state.title()))
     a = cur.fetchall()
     conn.close()
     return np.array(a)

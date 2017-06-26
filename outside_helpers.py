@@ -537,7 +537,7 @@ def assign_theme(details):
     "cultural": ["LANDmark", "Museum", "OutdoorActivities", "Library", "Stadium"],
     "theme_park": ["ThemePark"],
     "national_park": ["NationalPark"],
-    "other_list": ["Other", "VisotorCenter", "Transportation", "Tour"]
+    "other_list": ["Other", "VisotorCenter", "Transportation", "Tour", "Unuse_theater", "Unuse_transportation"]
     }
 
     assign_dict = {"family" : 0,"lifestyle": 0,"nature": 0,"cultural": 0,"theme_park": 0,"national_park": 0,"other_list": 0}
