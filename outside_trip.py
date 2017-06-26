@@ -6,6 +6,7 @@ import os
 import json
 import ast
 from sklearn.cluster import KMeans
+from django.utils import timezone
 
 current_path= os.getcwd()
 with open(current_path + '/api_key_list.config') as key_file:
@@ -130,7 +131,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('select max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, str(info_details).replace("'", "''") , event_type, str(event_ids), i, route_theme))
+            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s', %s);" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, str(info_details).replace("'", "''") , event_type, str(event_ids), i, route_theme, ))
             conn.commit()
             conn.close()
 
@@ -173,8 +174,8 @@ if __name__ == '__main__':
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
         # print "outside_trip_id: ", outside_trip_id
         # print ""
-        print "outside_trip_details: ", type(outside_trip_details), type(outside_trip_details[0]), type(outside_trip_details[0][0])
+        # print "outside_trip_details: ", type(outside_trip_details), type(outside_trip_details[0]), type(outside_trip_details[0][0])
        
         # print type(ast.literal_eval(outside_trip_details[0].replace("''", '"'))[0])
-        print "outside_route_ids_list: ", type(outside_route_ids_list), type(outside_route_ids_list[0])
+        # print "outside_route_ids_list: ", type(outside_route_ids_list), type(outside_route_ids_list[0])
     print time.time()- start_t

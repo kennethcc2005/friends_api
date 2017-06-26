@@ -275,7 +275,7 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
     walking_time_list = []
     name_list = []
     api_i = 0
-    city_to_poi_id = str(city_id) + '0000' + str(event_ids[0])
+    city_to_poi_id = str(int(city_id)) + '0000' + str(int(event_ids[0]))
     if not check_city_to_poi(city_to_poi_id):
         cur.execute("SELECT name, coord_lat, coord_long FROM poi_detail_table WHERE index = %s;" % (event_ids[0]))
         dest_name, dest_coord_lat, dest_coord_long = cur.fetchone()
@@ -329,7 +329,7 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
         walking_time_list.extend([city_to_poi_walking_time] * 2)
     
     for i,v in enumerate(event_ids[:-1]):
-        id_ = str(v) + '0000' + str(event_ids[i+1])
+        id_ = str(int(v)) + '0000' + str(int(event_ids[i+1]))
         result_check_travel_time_id = helpers.check_travel_time_id(id_)
         if not result_check_travel_time_id:
             cur.execute("SELECT name, coord_lat, coord_long FROM poi_detail_table WHERE index = %s;" % (v))

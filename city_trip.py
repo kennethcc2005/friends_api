@@ -11,7 +11,7 @@ with open(current_path + '/api_key_list.config') as key_file:
 api_key = api_key_list["distance_api_key_list"]
 conn_str = api_key_list["conn_str"]
 
-def get_fulltrip_data(state, city, n_days, full_day = True, regular = True, debug = True, visible = True):
+def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=True, visible=True):
     '''
     Get the default full trip data for each city(county)
     '''
@@ -83,14 +83,14 @@ def get_fulltrip_data(state, city, n_days, full_day = True, regular = True, debu
             cur = conn.cursor()
             cur.execute('select max(index) from day_trip_table;')
             max_index = cur.fetchone()[0]
-            index = max_index+1
+            index = max_index + 1
 
             #if exisitng day trip id..remove those...
             if helpers.check_day_trip_id(day_trip_id):
-                cur.execute("SELECT index FROM day_trip_table WHERE trip_locations_id = '%s';" %(day_trip_id))
+                cur.execute("SELECT index FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
                 cur = conn.cursor()                     
                 index = cur.fetchone()[0]
-                cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" %(day_trip_id))
+                cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
                 conn.commit()
             cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, county, state, str(details).replace("'", "''"), event_type, str(list(event_ids))))
             conn.commit()
@@ -109,11 +109,11 @@ def get_fulltrip_data(state, city, n_days, full_day = True, regular = True, debu
         conn.close()
         print "finish update %s, %s into database" %(state, county)
     else:
-        print "%s, %s already in database" %(state, county) 
+        print "%s, %s already in database" %(state, county)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" %(full_trip_id)) 
-        trip_location_ids, details = cur.fetchone()      
+        cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" % (full_trip_id))
+        trip_location_ids, details = cur.fetchone()
         conn.close()
 
         full_trip_details = ast.literal_eval(details)
