@@ -257,7 +257,7 @@ class FullTripSuggestArray(APIView):
         suggest_event_array = trip_update.suggest_event_array(full_trip_id, trip_location_id, event_id, username_id)
         if not suggest_event_array:
             return Response({
-            "error_no_suggestion": 'not enough items to re-suggest'
+            "error_no_suggestion": 'No other place in the near area as good as this place'
         }, status=400)
 
         return Response({
