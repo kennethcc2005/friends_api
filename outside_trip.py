@@ -56,11 +56,11 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('SELECT MAX(index) from outside_trip_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');" % (new_index, username_id, outside_trip_id, '[]', '[]', origin_city, origin_state, target_direction, 0, regular, full_day, '[]'))
+            cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');" % (new_index, username_id, outside_trip_id, '[]', '[]', origin_city, origin_state, target_direction, 0, regular, full_day, '[]'))
             conn.commit()
             conn.close()
             print "finish update None for %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
-            return outside_trip_id, [], 
+            return outside_trip_id, [], []
         poi_coords = city_infos[:, 1:3]
         n_routes = sum(1 for t in np.array(city_infos)[:, 3] if t >= 120) / 10
         if (n_routes > 1) and (city_infos.shape[0] >= 10):
