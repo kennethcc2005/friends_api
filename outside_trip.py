@@ -63,6 +63,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             return outside_trip_id, [], []
         poi_coords = city_infos[:, 1:3]
         n_routes = sum(1 for t in np.array(city_infos)[:, 3] if t >= 120) / 10
+
         if (n_routes > 1) and (city_infos.shape[0] >= 10):
             kmeans = KMeans(n_clusters=n_routes).fit(poi_coords)
         elif (city_infos.shape[0] > 20) or (n_routes > 1):
@@ -86,14 +87,14 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
                         med_ix.append(ix)
                     else:
                         small_ix.append(ix)
+
             big_ = outside_helpers.sorted_outside_events(city_infos, big_ix)
             med_ = outside_helpers.sorted_outside_events(city_infos, med_ix)
             small_ = outside_helpers.sorted_outside_events(city_infos, small_ix)
-            # need to update!!!!!!!!
+
             event_ids, event_type = outside_helpers.create_outside_event_id_list(big_, med_, small_)
             event_ids, event_type = outside_helpers.db_outside_event_cloest_distance(coord_lat, coord_long, event_ids=event_ids, event_type=event_type)
             event_ids, google_ids, name_list, driving_time_list, walking_time_list = outside_helpers.db_outside_google_driving_walking_time(city_id, coord_lat, coord_long, event_ids, event_type, origin_city=origin_city, origin_state=origin_state)
-            #why bug????
             event_ids, driving_time_list, walking_time_list, total_time_spent = outside_helpers.db_remove_outside_extra_events(event_ids, driving_time_list, walking_time_list)
             outside_route_id = outside_trip_id + '-' + str(i)
 
@@ -167,15 +168,14 @@ if __name__ == '__main__':
     # print dir(outside_helpers)
 
     direct = ["E","S","W","N"]
-    origin_city = 'San Jose'
+    origin_city = 'dublin'
     origin_state = 'CA'
     print origin_city, origin_state
-    for target_direction in direct[1]:
+    for target_direction in direct[2]:
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
-        # print "outside_trip_id: ", outside_trip_id
-        # print ""
-        # print "outside_trip_details: ", type(outside_trip_details), type(outside_trip_details[0]), type(outside_trip_details[0][0])
-       
-        # print type(ast.literal_eval(outside_trip_details[0].replace("''", '"'))[0])
-        # print "outside_route_ids_list: ", type(outside_route_ids_list), type(outside_route_ids_list[0])
+        print "outside_trip_id: ", outside_route_ids_list
+        print " "
+        for trip_d in outside_trip_details:
+            print "outside_trip_details", trip_d
+            print ""
     print time.time()- start_t

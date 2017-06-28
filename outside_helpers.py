@@ -225,7 +225,7 @@ def travel_outside_with_direction(origin_city, origin_state, target_direction, f
     cur.execute("SELECT index, coord_lat, coord_long FROM all_cities_coords_table WHERE city ='%s' AND state = '%s';" % (origin_city, origin_state))
     id_, start_lat, start_long = cur.fetchone()
 
-    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city != '%s' AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, start_long, start_lat, furthest_len))
+    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city != '%s' AND NOT poi_type = 'Tour' AND NOT poi_type = 'Other' AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, start_long, start_lat, furthest_len))
     item = cur.fetchall()
     conn.close()
     for coords in item:
@@ -532,9 +532,9 @@ def create_outside_event_id_list(big_, medium_, small_):
 def assign_theme(details):
     theme_list_dict = {
     "family": ["Park", "Zoo", "Game"],
-    "lifestyle": ["Nightlife", "Shopping", "Theater", "Food", "Spa", "Casino", "Show", "ShoppingMall", "Show"],
+    "lifestyle": ["Nightlife", "Shopping", "Theater", "Food", "Spa", "Casino", "Show", "ShoppingMall"],
     "nature": ["StatePark", "NationalWildlifeRefuge", "NationalHistoricalPark", "NationalForest", "NationalMonument", "NationalMemorial"],
-    "cultural": ["LANDmark", "Museum", "OutdoorActivities", "Library", "Stadium"],
+    "cultural": ["Landmark", "Museum", "OutdoorActivities", "Library", "Stadium"],
     "theme_park": ["ThemePark"],
     "national_park": ["NationalPark"],
     "other_list": ["Other", "VisotorCenter", "Transportation", "Tour", "Unuse_theater", "Unuse_transportation"]
