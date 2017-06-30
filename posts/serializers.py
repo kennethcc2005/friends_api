@@ -35,6 +35,9 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'title',
+            'username_id',
+            'full_trip',
+            'outside_trip',
             'slug',
             'published',            
             'body',
