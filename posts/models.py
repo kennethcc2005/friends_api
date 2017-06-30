@@ -24,7 +24,7 @@ def unique_slug(title):
 class Post(models.Model):
     #future: add custom trip!
     title = models.CharField(max_length=255)
-    username_id = models.ForeignKey('auth.User', related_name = 'posts', on_delete=models.CASCADE, default=1,null=False)
+    username = models.ForeignKey('auth.User', related_name = 'posts', on_delete=models.CASCADE, default=1,null=False)
     slug = models.SlugField(max_length=256, default="")
     pub_date = models.DateTimeField(blank=True, null=True)
     body = models.TextField(default="", null=True, blank=True)

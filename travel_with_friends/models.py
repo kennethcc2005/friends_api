@@ -207,7 +207,7 @@ class DjangoSession(models.Model):
 
 class FullTripTable(models.Model):
     index = models.BigIntegerField(primary_key=True)
-    username_id = models.ForeignKey('auth.User', related_name = 'full_trips', on_delete=models.CASCADE, default = 1)
+    username = models.ForeignKey('auth.User', related_name = 'full_trips', on_delete=models.CASCADE, default = 1)
     full_trip_id = models.TextField(blank=True, null=True)
     trip_location_ids = models.TextField(blank=True, null=True)
     regular = models.NullBooleanField()
@@ -297,7 +297,7 @@ class OutsideRouteTable(models.Model):
 
 class OutsideTripTable(models.Model):
     index = models.BigIntegerField(primary_key=True)
-    username_id = models.ForeignKey('auth.User', related_name = 'outside_trips', on_delete=models.CASCADE, default=1)
+    username = models.ForeignKey('auth.User', related_name = 'outside_trips', on_delete=models.CASCADE, default=1)
     outside_trip_id = models.TextField(blank=True, null=True)
     outside_route_ids = models.TextField(blank=True, null=True)
     event_id_lst = models.TextField(blank=True, null=True)
