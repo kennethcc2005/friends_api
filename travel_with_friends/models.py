@@ -207,7 +207,7 @@ class DjangoSession(models.Model):
 
 class FullTripTable(models.Model):
     index = models.BigIntegerField(primary_key=True)
-    username = models.ForeignKey('auth.User', related_name = 'full_trips', on_delete=models.CASCADE)
+    username_id = models.ForeignKey('auth.User', related_name = 'full_trips', on_delete=models.CASCADE)
     full_trip_id = models.TextField(blank=True, null=True)
     trip_location_ids = models.TextField(blank=True, null=True)
     regular = models.NullBooleanField()
@@ -215,6 +215,9 @@ class FullTripTable(models.Model):
     state = models.TextField(blank=True, null=True)
     details = models.TextField(blank=True, null=True)
     n_days = models.FloatField(blank=True, null=True)
+    visible = models.BooleanField(default=False, blank=True)
+    day_created = models.DateTimeField(blank=True, null=True)
+    day_modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -272,7 +275,7 @@ class PoiDetailTableV2(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'poi_detail_table_v2'
+        db_table = 'poi_detail_table'
 
 class OutsideRouteTable(models.Model):
     index = models.BigIntegerField(primary_key=True)
@@ -285,7 +288,8 @@ class OutsideRouteTable(models.Model):
     details = models.TextField(blank=True, null=True)
     event_type = models.TextField(blank=True, null=True)
     event_ids = models.TextField(blank=True, null=True)
-
+    route_num = models.IntegerField(blank=True, null=True)
+    route_theme =  models.TextField(blank=True, null=True)
     class Meta:
         managed = False
         db_table = 'outside_route_table'
@@ -293,7 +297,7 @@ class OutsideRouteTable(models.Model):
 
 class OutsideTripTable(models.Model):
     index = models.BigIntegerField(primary_key=True)
-    username = models.ForeignKey('auth.User', related_name = 'outside_trips', on_delete=models.CASCADE)
+    username_id = models.ForeignKey('auth.User', related_name = 'outside_trips', on_delete=models.CASCADE)
     outside_trip_id = models.TextField(blank=True, null=True)
     outside_route_ids = models.TextField(blank=True, null=True)
     event_id_lst = models.TextField(blank=True, null=True)
@@ -303,22 +307,10 @@ class OutsideTripTable(models.Model):
     n_routes = models.FloatField(blank=True, null=True)
     regular = models.NullBooleanField()
     full_day = models.NullBooleanField()
-    details = models.TextField(blank=True, null=True)
+    outside_trip_details = models.TextField(blank=True, null=True)
+    day_created = models.DateTimeField(blank=True, null=True)
+    day_modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'outside_trip_table'
-
-class SnippetsSnippet(models.Model):
-    highlighted = models.TextField()
-    created = models.DateTimeField()
-    title = models.CharField(max_length=100)
-    code = models.TextField()
-    linenos = models.BooleanField()
-    language = models.CharField(max_length=100)
-    style = models.CharField(max_length=100)
-    owner = models.ForeignKey(AuthUser, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'snippets_snippet'
