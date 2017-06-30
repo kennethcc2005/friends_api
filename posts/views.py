@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 # from rest_framework.response import Response
 
 from .models import Post, Tag, Category
-from .serializers import PostSerializer, TagSerializer
+from .serializers import PostSerializer, TagSerializer, CategorySerializer
 from .utils import add_tags
 from .activities import submit_post
 
