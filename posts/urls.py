@@ -2,7 +2,7 @@ from django.conf.urls import url
 
 from .views import PostList, PostCreate, PostRetrieveUpdateDestroy
 from .views import TagListCreate, TagRetrieveUpdateDestroy
-from .views import CategoryList
+from .views import CategoryList, SettingsDetail
 from .feeds import MainFeed
 from .activities import posts_stream
 
@@ -28,6 +28,6 @@ urlpatterns = [
     url(r'^feed/rss$', MainFeed()),
     # Activities
     url(r'^feed/posts/new$', posts_stream),
-    
+    url(r'^settings/$', SettingsDetail.as_view()),
 ]
 

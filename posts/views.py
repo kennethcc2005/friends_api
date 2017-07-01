@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -7,8 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 # from rest_framework.views import APIView
 # from rest_framework.response import Response
 
-from .models import Post, Tag, Category
-from .serializers import PostSerializer, TagSerializer, CategorySerializer
+from .models import Post, Tag, Category, Settings
+from .serializers import PostSerializer, TagSerializer, CategorySerializer, SettingsSerializer
 from .utils import add_tags
 from .activities import submit_post
 
@@ -115,3 +115,10 @@ class TagRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
 class CategoryList(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+class SettingsDetail(RetrieveAPIView):
+    serializer_class = SettingsSerializer
+
+    def get_object(self):
+        queryset = Settings.objects.all().first()
+        return queryset

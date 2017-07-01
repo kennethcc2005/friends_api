@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Post, Tag, Category
+from .models import Post, Tag, Category, Settings
 
 class TagSlugSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,8 +47,6 @@ class PostSerializer(serializers.ModelSerializer):
 
         lookup_field = 'slug'
 
-        
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -57,5 +55,8 @@ class TagSerializer(serializers.ModelSerializer):
             'slug',
         )
 
-        
+class SettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Settings
+        fields = '__all__'  
 
