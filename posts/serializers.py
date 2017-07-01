@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import Post, Tag, Category, Settings
 
 class TagSlugSerializer(serializers.ModelSerializer):
@@ -21,30 +20,17 @@ class CategorySerializer(serializers.ModelSerializer):
         
 
 class PostSerializer(serializers.ModelSerializer):
-    # Include the whole tag object into the post(use for comments):
     tags = TagSlugSerializer(read_only=True, many=True)
-    # Include just the tag's slugs:
-    # tags = serializers.SlugRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     slug_field='slug')    
-
     category = CategorySerializer(read_only=True)
-    
+    username = serializers.CharField(source='username.username')
+    full_trip_details = serializers.CharField(source='full_trip.details')
+    full_trip_id = serializers.CharField(source='full_trip.full_trip_id')
+    outside_trip_details = serializers.CharField(source='outside_trip.outside_trip_details')
+    outside_trip_id = serializers.CharField(source='outside_trip.outside_trip_id')
+    # full_trip_details = ast.literal_eval(full_trip_details)
     class Meta:
         model = Post
-        fields = (
-            'title',
-            'username_id',
-            'full_trip',
-            'outside_trip',
-            'slug',
-            'published',            
-            'body',
-            'category',
-            'tags'
-        )
-
+        fields = ('username','title', 'slug','body','full_trip_id', 'full_trip_details','outside_trip_id', 'outside_trip_details','published', 'category', 'tags')
         lookup_field = 'slug'
 
 class TagSerializer(serializers.ModelSerializer):
