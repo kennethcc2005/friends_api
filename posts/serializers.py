@@ -30,7 +30,7 @@ class PostSerializer(serializers.ModelSerializer):
     # full_trip_details = ast.literal_eval(full_trip_details)
     class Meta:
         model = Post
-        fields = ('username','title', 'slug','body','full_trip_id', 'full_trip_details','outside_trip_id', 'outside_trip_details','published', 'category', 'tags')
+        fields = ('username','title', 'slug','body','full_trip_id', 'full_trip_details','outside_trip_id', 'outside_trip_details','published', 'category', 'tags','pub_date')
         lookup_field = 'slug'
 
 class TagSerializer(serializers.ModelSerializer):
