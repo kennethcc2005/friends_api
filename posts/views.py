@@ -14,7 +14,7 @@ import ast
 # from rest_framework.response import Response
 
 from .models import Post, Tag, Category, Settings
-from .serializers import PostSerializer, TagSerializer, CategorySerializer, SettingsSerializer
+from .serializers import CreatePostSerializer, PostSerializer, TagSerializer, CategorySerializer, SettingsSerializer
 from .utils import add_tags
 from .activities import submit_post
 
@@ -99,7 +99,7 @@ class PostList(APIView):
 @permission_classes((IsAuthenticated, ))    
 class PostCreate(CreateAPIView):
     queryset = Post.objects.all()    
-    serializer_class = PostSerializer
+    serializer_class = CreatePostSerializer
     
     def perform_create(self, serializer):
         post = serializer.save()

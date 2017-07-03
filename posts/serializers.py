@@ -33,6 +33,33 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ('username','title', 'slug','body','full_trip_id', 'full_trip_details','outside_trip_id', 'outside_trip_details','published', 'category', 'tags','pub_date')
         lookup_field = 'slug'
 
+class CreatePostSerializer(serializers.ModelSerializer):
+    # Include the whole tag object into the post(use for comments):
+    tags = TagSlugSerializer(read_only=True, many=True)
+    # Include just the tag's slugs:
+    # tags = serializers.SlugRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     slug_field='slug')    
+
+    category = CategorySerializer(read_only=True)
+    
+    class Meta:
+        model = Post
+        fields = (
+            'title',
+            'full_trip',
+            'outside_trip',
+            'username_id',
+            'slug',
+            'published',            
+            'body',
+            'category',
+            'tags'
+        )
+
+        lookup_field = 'slug'
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
