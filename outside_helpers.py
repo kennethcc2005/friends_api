@@ -233,7 +233,7 @@ def travel_outside_with_direction(origin_city, origin_state, target_direction, f
             poi_info.append(coords)
     return id_, start_lat, start_long, np.array(poi_info)
 
-def check_outside_trip_id(outside_trip_id, debug):
+def check_outside_trip_id(outside_trip_id, debug=False):
     '''
     Check outside trip id exist or not.  
     '''

@@ -15,6 +15,25 @@ with open(current_path + '/api_key_list.config') as key_file:
 api_key = api_key_list["distance_api_key_list"]
 conn_str = api_key_list["conn_str"]
 
+def get_exisiting_full_trip_details(full_trip_id):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" % (full_trip_id))
+    trip_location_ids, details = cur.fetchone()
+    conn.close()
+    full_trip_details = ast.literal_eval(details)
+    trip_location_ids = ast.literal_eval(trip_location_ids)
+    return full_trip_id, full_trip_details, trip_location_ids
+
+def get_exisiting_outside_trip_details(outside_trip_id):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
+    outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
+    outside_trip_details = ast.literal_eval(outside_trip_details)
+    outside_route_ids_list = ast.literal_eval(outside_route_ids_list)
+    conn.close()
+    return outside_trip_id, outside_trip_details, outside_route_ids_list
 
 def check_valid_state(state):
     '''

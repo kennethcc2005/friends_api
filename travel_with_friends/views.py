@@ -54,6 +54,35 @@ def create_auth(request):
     else:
         return Response(serialized._errors, status=status.HTTP_400_BAD_REQUEST)
 
+class FullTripDetail(APIView):
+    def get(self, request, full_trip_id):
+        valid_full_trip = check_full_trip_id(full_trip_id)
+        if not valid_full_trip:
+            return Response({
+            "error_trip_id": '%s is not a valid full trip id.' % (full_trip_id),
+        }, status=400)
+        full_trip_id, full_trip_details, trip_location_ids = get_exisiting_full_trip_details(full_trip_id)
+        return Response({
+            "full_trip_id": full_trip_id,
+            "full_trip_details": full_trip_details,
+            "trip_location_ids": trip_location_ids,
+        })
+
+
+class OutsideTripDetail(APIView):
+    def get(self, request, outside_trip_id):
+        valid_outside_trip = check_outside_trip_id(outside_trip_id)
+        if not valid_outside_trip:
+            return Response({
+            "error_trip_id": '%s is not a valid full trip id.' % (outside_trip_id),
+        }, status=400)
+        outside_trip_id, outside_trip_details, trip_location_ids = get_exisiting_outside_trip_details(outside_trip_id)
+        return Response({
+            "outside_trip_id": outside_trip_id,
+            "outside_trip_details": outside_trip_details,
+            "trip_location_ids": trip_location_ids,
+        })
+
 class FullTripSearch(APIView):
     def get_permissions(self):
         '''

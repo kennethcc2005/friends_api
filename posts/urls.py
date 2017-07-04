@@ -20,7 +20,6 @@ urlpatterns = [
     url(r'post/(?P<slug>[^\.]+)/$',
         PostRetrieveUpdateDestroy.as_view(),
         name='post_detail'),
-
     url(r'^tags/$', TagListCreate.as_view(), name='tag_list'),    
     url(r'tag/(?P<slug>[^\.]+)/$', TagRetrieveUpdateDestroy.as_view(), name='tag_detail'),
 

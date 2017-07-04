@@ -137,7 +137,6 @@ class PostRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     lookup_field = 'slug'
 
-        
     def perform_update(self, serializer):
         post = serializer.save()
 
