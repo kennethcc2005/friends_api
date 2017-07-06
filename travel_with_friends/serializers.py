@@ -52,14 +52,21 @@ class IPGeoLocationSerializer(serializers.Serializer):
 #         write_only_fields = ('password',)
 #         read_only_fields = ('is_staff', 'is_superuser', 'is_active', 'date_joined',)
 
+class FullTripTableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FullTripTable
+        fields = ('index','full_trip_id', 'details')
 
 class UserSerializer(UserDetailsSerializer):
-    full_trips = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
-    outside_trips = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
+    # full_trips = FullTripTableSerializer()
+    full_trips = serializers.SlugRelatedField(many=True,read_only=True,slug_field='full_trip_id')
+    outside_trips = serializers.SlugRelatedField(many=True,read_only=True,slug_field='outside_trip_id')
+    # full_trip_id = serializers.CharField(source='full_trips')
+    # outside_trips = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
     # snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=FullTripTable.objects.all())
     class Meta:
         model = User
-        fields = UserDetailsSerializer.Meta.fields + ('full_trips', 'outside_trips')
+        fields = UserDetailsSerializer.Meta.fields + ('full_trips','outside_trips')
         write_only_fields = ('password',)
         read_only_fields = ('id',)
 
