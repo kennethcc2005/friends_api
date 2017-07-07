@@ -98,6 +98,7 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             new_trip_location_id = '-'.join(event_ids)+'-'+str(poi_id)
         else:
             # db_event_cloest_distance(trip_locations_id=None,event_ids=None, event_type = 'add',new_event_id = None, city_name =None)
+            print 'add: ', trip_locations_id, poi_id
             event_ids, event_type = db_event_cloest_distance(trip_locations_id=trip_locations_id, new_event_id=poi_id)
             event_ids, driving_time_list, walking_time_list = db_google_driving_walking_time(event_ids,event_type = 'add')
             new_trip_location_id = '-'.join(event_ids)
@@ -113,7 +114,7 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             for item in event_ids:
                 cur.execute("select index, name, address, coord_lat, coord_long, city, state, icon_url, check_full_address, poi_type, adjusted_visit_length, img_url from poi_detail_table where index = '%s';" %(item))
                 a = cur.fetchone()
-                detail = {'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11]}
+                detail = {'id': a[0],'name': a[1],'address': a[2], 'day': event_day, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11]}
                 details.append(detail)
             #need to make sure event detail can append to table!
             cur.execute("select max(index) from day_trip_table;")
@@ -207,9 +208,10 @@ def remove_event(full_trip_id, trip_locations_id, remove_event_id, username_id=1
             return new_full_trip_id, full_trip_details, trip_location_ids
         return '','',''
     
-    
+    print 'remove id: ', trip_locations_id
     cur.execute("select * from day_trip_table where trip_locations_id='%s'" %(trip_locations_id)) 
     (index, trip_locations_id, full_day, regular, county, state, detail, event_type, event_ids) = cur.fetchone()
+
     new_event_ids = convert_event_ids_to_lst(event_ids)
     remove_event_id = int(remove_event_id)
     new_event_ids.remove(remove_event_id)

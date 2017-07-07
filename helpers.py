@@ -100,7 +100,9 @@ def get_event_ids_list(trip_locations_id):
     cur.execute("SELECT event_ids,event_type FROM day_trip_table WHERE trip_locations_id = '%s';" % (trip_locations_id))
     event_ids, event_type = cur.fetchone()
     print "At helper.get_event_ids_list before convert_event_ids_to_lst", event_ids, type(event_ids)
-    event_ids = convert_event_ids_to_lst(event_ids)
+    if type(event_ids) != list:
+        event_ids = ast.literal_eval(event_ids)
+    # event_ids = convert_event_ids_to_lst(event_ids)
     print "At helper.get_event_ids_list after convert_event_ids_to_lst", event_ids, type(event_ids)
     conn.close()
     return event_ids, event_type
@@ -112,6 +114,7 @@ def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type=
     '''
     if new_event_id or not event_ids:
         event_ids, event_type = get_event_ids_list(trip_locations_id)
+        print 'event_ids: ', event_ids, type(event_ids), trip_locations_id
         if new_event_id:
             event_ids.append(new_event_id)
             
@@ -121,9 +124,12 @@ def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type=
     # points = np.zeros((len(event_ids), 3))
     for i, v in enumerate(event_ids):
         cur.execute("SELECT index, coord_lat, coord_long, city , ranking FROM poi_detail_table WHERE index = %i;" %(float(v)))
-        points.append(cur.fetchone())
+        a= cur.fetchone()
+        if i == 0:
+            city_name = a[3]
+        points.append(a)
     conn.close()
-
+    print 'clostest dist: ', event_ids, points, city_name
     points = check_NO_1(points, city_name)
     n, D = distance.mk_matrix(points[:,1:3], distance.geopy_dist)
     if len(points) >= 3:
