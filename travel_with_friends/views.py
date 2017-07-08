@@ -362,15 +362,18 @@ class OutsideTripAddSearch(APIView):
         serializer.is_valid(raise_exception=True)
         # Get the model input
         data = serializer.validated_data
-        outside_route_id = data["outside_route_id"]
-        poi_name = data["poi_name"]
         outside_trip_id = data["outside_trip_id"]
+        poi_name = data["poi_name"]
+        outside_route_id = data["outside_route_id"]
 
         # poi_dict, poi_names = trip_update.outside_add_search_event(poi_name, outside_route_id)
-        a,b,c,d = trip_update.outside_add_search_event(poi_name, outside_route_id)
-        print a,b,c,d
+        a, b, c, d = trip_update.outside_add_search_event(poi_name, outside_route_id)
+        print a, b, c, d
         return Response({
-            "reslut": [a,b,c,d],
+            "a": a,
+            "b": b,
+            "c": c,
+            "d": d,
         })
         
         # print 'welcome to add your search :)', poi_names, poi_dict
