@@ -132,7 +132,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('select max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details) , event_type, json.dumps(list(event_ids), i, route_theme))
+            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(list(event_ids)), i, route_theme))
             conn.commit()
             conn.close()
 
@@ -144,7 +144,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, json.dumps(outside_route_ids_list), json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
 
         conn.commit()
         conn.close()
