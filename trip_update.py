@@ -54,6 +54,23 @@ def add_search_event(poi_name, trip_location_id):
     conn.close()
     return poi_dict, poi_names
 
+def outside_add_search_event(poi_name, outside_route_id):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT origin_city, origin_state, event_ids FROM outside_trip_table WHERE outside_route_id =  '%s' LIMIT 1;" %(outside_route_id))
+    city, state, event_ids = cur.fetchone()
+    event_ids = convert_event_ids_to_lst(event_ids)
+    new_event_ids = tuple(event_ids)
+    return new_event_ids, type(new_event_ids), event_ids, type(event_ids)
+
+
+
+
+
+
+
+
+
 def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_day = True, unseen_event = False, username_id=1):
     #day number is sth to remind! need to create better details maybe
     conn = psycopg2.connect(conn_str)   
