@@ -132,7 +132,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('select max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, str(info_details).replace("'", "''") , event_type, str(event_ids), i, route_theme))
+            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details) , event_type, str(event_ids), i, route_theme))
             conn.commit()
             conn.close()
 
@@ -144,7 +144,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), str(event_id_list).replace("'", "''"), origin_city, origin_state, target_direction, n_routes, regular, full_day, str(outside_trip_details).replace("'", "''")))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, str(outside_route_ids_list).replace("'", "''"), str(event_id_list).replace("'", "''"), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
 
         conn.commit()
         conn.close()
@@ -168,14 +168,17 @@ if __name__ == '__main__':
     # print dir(outside_helpers)
 
     direct = ["E","S","W","N"]
-    origin_city = 'dublin'
-    origin_state = 'CA'
+    origin_city = 'San Jose'
+    origin_state = 'California'
     print origin_city, origin_state
-    for target_direction in direct[2]:
+    for target_direction in direct:
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
+        print type(outside_trip_details)
         print "outside_trip_id: ", outside_route_ids_list
         print " "
         for trip_d in outside_trip_details:
-            print "outside_trip_details", trip_d
-            print ""
+            print "outside_trip_details", type(trip_d)
+            print "", trip_d
+            for trip_dd in trip_d:
+                print type(trip_dd)
     print time.time()- start_t

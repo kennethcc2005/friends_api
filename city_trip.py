@@ -92,7 +92,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
                 index = cur.fetchone()[0]
                 cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
                 conn.commit()
-            cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, county, state, str(details).replace("'", "''"), event_type, str(list(event_ids))))
+            cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, county, state, json.dumps(details), event_type, str(list(event_ids))))
             conn.commit()
             conn.close()
             trip_location_ids.append(day_trip_id)
@@ -104,7 +104,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         cur = conn.cursor()
         cur.execute("select max(index) from full_trip_table;")
         full_trip_index = cur.fetchone()[0] + 1
-        cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, county, state, str(full_trip_details).replace("'","''"), n_days, visible))
+        cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, county, state, json.dumps(full_trip_details), n_days, visible))
         conn.commit()
         conn.close()
         print "finish update %s, %s into database" %(state, county)
@@ -116,7 +116,8 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         trip_location_ids, details = cur.fetchone()
         conn.close()
 
-        full_trip_details = ast.literal_eval(details)
+        # full_trip_details = ast.literal_eval(details)
+        full_trip_details = details
         trip_location_ids = ast.literal_eval(trip_location_ids)
 
     return full_trip_id, full_trip_details, trip_location_ids
@@ -129,7 +130,8 @@ if __name__ == '__main__':
     print origin_city, origin_state
     days = [1,2,3,4,5]
     for n_days in days:
-        get_fulltrip_data(origin_state, origin_city, n_days)
-
+        full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
+        print type(full_trip_details)
+        print full_trip_details
     print time.time()-start_t
 
