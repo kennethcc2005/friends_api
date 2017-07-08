@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^update_trip/add_search/$', views.FullTripAddSearch.as_view(), name='full-trip-add-search'), 
     url(r'^update_trip/add/$', views.FullTripAddEvent.as_view(), name='full-trip-add-event'), 
     url(r'^create_full_trip/$', views.FullTripCreate.as_view(), name='full-trip-create'), 
+    url(r'^OutsideTripAddSearch/$', views.OutsideTripAddSearch.as_view(), name='OutsideTripAddSearch'), 
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^login/$', local_views.get_auth_token, name='login'),
