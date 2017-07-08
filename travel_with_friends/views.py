@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer
+        IPGeoLocationSerializer, OutsideTripAddSearchSerializer,
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
