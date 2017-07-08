@@ -342,11 +342,70 @@ class FullTripCreate(APIView):
         data = request.data
         username = request.user.username
         username_id = User.objects.get(username=username).pk
-        full_trip_id=data["fullTripId"]
+        full_trip_id= data["fullTripId"]
         response = trip_update.create_full_trip(full_trip_id, username_id)
         return Response({
             "response": response,
         })
+
+class OutsideTripAddSearch(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+        # return (AllowAny() if self.request.method == 'POST'
+        #         else permissions.IsAuthenticated()),
+    def get(self, request):
+        # Validate the incoming input (provided through query parameters)
+        serializer = FullTripAddSearchSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        # Get the model input
+        data = serializer.validated_data
+        full_trip_id=data["full_trip_id"]
+        poi_name = data["poi_name"]
+        trip_location_id = data["trip_location_id"]
+        poi_dict, poi_names = trip_update.add_search_event(poi_name, trip_location_id)
+        print 'welcome to add your search :)', poi_names, poi_dict
+        return Response({
+            "poi_dict": poi_dict,
+            "poi_names": poi_names,
+        })
+
+class OutsideTripAddEvent(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+        # return (AllowAny() if self.request.method == 'POST'
+        #         else permissions.IsAuthenticated()),
+    def get(self, request):
+        # Validate the incoming input (provided through query parameters)
+        
+        serializer = FullTripAddEventSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        # Get the model input
+        data = serializer.validated_data
+        full_trip_id=data["full_trip_id"]
+        poi_name = data["poi_name"]
+        poi_id = data["poi_id"] if data["poi_id"] != 'undefined' else None
+        trip_location_id = data["trip_location_id"]
+        old_trip_location_id,new_trip_location_id, new_day_details = trip_update.add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
+        full_trip_id, trip_location_ids, full_trip_details = trip_update.add_event_full_trip(full_trip_id, old_trip_location_id, new_trip_location_id, new_day_details)
+        print 'submit your add event :)', full_trip_id, trip_location_ids, full_trip_details
+        return Response({
+            "full_trip_details": full_trip_details,
+            "full_trip_id": full_trip_id,
+            "trip_location_ids": trip_location_ids,
+            "current_trip_location_id": new_trip_location_id,
+        })
+
+
+
+
+
+
 
 class IPGeoLocation(APIView):
     # def get_permissions(self):
