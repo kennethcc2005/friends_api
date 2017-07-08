@@ -116,8 +116,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         trip_location_ids, details = cur.fetchone()
         conn.close()
 
-        # full_trip_details = ast.literal_eval(details)
-        full_trip_details = details
+        full_trip_details = ast.literal_eval(details)
         trip_location_ids = ast.literal_eval(trip_location_ids)
 
     return full_trip_id, full_trip_details, trip_location_ids
@@ -133,5 +132,6 @@ if __name__ == '__main__':
         full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
         print type(full_trip_details)
         print full_trip_details
+
     print time.time()-start_t
 
