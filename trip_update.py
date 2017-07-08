@@ -61,7 +61,8 @@ def outside_add_search_event(poi_name, outside_route_id):
     city, state, event_ids = cur.fetchone()
     event_ids = convert_event_ids_to_lst(event_ids)
     new_event_ids = tuple(event_ids)
-    return new_event_ids, type(new_event_ids), event_ids, type(event_ids)
+    print new_event_ids, type(new_event_ids), event_ids, type(event_ids)
+    return new_event_ids, event_ids
 
 
 
