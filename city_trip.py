@@ -3,6 +3,7 @@ import psycopg2
 import os
 import ast
 import json
+import numpy as np
 from sklearn.cluster import KMeans
 
 current_path= os.getcwd()
@@ -15,21 +16,23 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
     '''
     Get the default full trip data for each city(county)
     '''
-    county = helpers.find_county(state, city)
+    counties = helpers.find_county(state, city)
     n_days = int(n_days)
-    if county:
-        full_trip_id = '-'.join([str(state.upper()), str(county.upper().replace(' ','-')),str(int(regular)), str(n_days)])
+    if counties:
+        counties_str = '-'.join(counties).upper().replace(' ','-')
+        full_trip_id = '-'.join([str(state.upper()), counties_str,str(int(regular)), str(n_days)])
     else:
         full_trip_id = '-'.join([str(state.upper()), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days)])
     if not helpers.check_full_trip_id(full_trip_id, debug):
-        trip_location_ids, full_trip_details =[],[]
-        county_list_info = helpers.db_start_location(county, state, city)
+        trip_location_ids, full_trip_details,county_list_info =[],[],[]
+        for county in counties: 
+            county_list_info.extend(helpers.db_start_location(county, state, city))
+        county_list_info = np.array(county_list_info)
         # print county_list_info
         if county_list_info.shape[0] == 0:
             print city, state, county, "is not in our database!!!!?"
             return [city, state, county, "is not in our database!!!!?"]
         new_end_day = max(county_list_info.shape[0]/6, 1)
-
         if  n_days > new_end_day:
             return get_fulltrip_data(state, city, new_end_day) 
         # time_spent = county_list_info[:,3]
@@ -40,8 +43,9 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         # print day_labels, day_order
         not_visited_poi_lst = []
         for i,v in enumerate(day_order):
-            if county:
-                day_trip_id = '-'.join([str(state).upper(), str(county.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
+            if counties:
+                counties_str = '-'.join(counties).upper().replace(' ','-')
+                day_trip_id = '-'.join([str(state.upper()), counties_str,str(int(regular)), str(n_days), str(i)])
             else:
                 day_trip_id = '-'.join([str(state).upper(), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days),str(i)])
 
@@ -92,7 +96,10 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
                 index = cur.fetchone()[0]
                 cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
                 conn.commit()
-            cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, county, state, json.dumps(details), event_type, str(list(event_ids))))
+            if counties:
+                cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, counties_str, state, json.dumps(details), event_type, str(list(event_ids))))
+            else:
+                cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, counties, state, json.dumps(details), event_type, str(list(event_ids))))
             conn.commit()
             conn.close()
             trip_location_ids.append(day_trip_id)
@@ -104,12 +111,15 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         cur = conn.cursor()
         cur.execute("select max(index) from full_trip_table;")
         full_trip_index = cur.fetchone()[0] + 1
-        cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, county, state, json.dumps(full_trip_details), n_days, visible))
+        if counties:
+            cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, counties_str, state, json.dumps(full_trip_details), n_days, visible))
+        else:
+            cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, counties, state, json.dumps(full_trip_details), n_days, visible))
         conn.commit()
         conn.close()
-        print "finish update %s, %s into database" %(state, county)
+        print "finish update %s, %s into database" %(state, str(counties))
     else:
-        print "%s, %s already in database" %(state, county)
+        print "%s, %s already in database" %(state, str(counties))
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
         cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" % (full_trip_id))

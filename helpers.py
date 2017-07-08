@@ -69,10 +69,11 @@ def find_county(state, city):
     city = city.replace('_', ' ')
     cur.execute("SELECT DISTINCT county FROM county_table WHERE city = '%s' AND state = '%s';" % (city.title(), state.title()))
 
-    county = cur.fetchone()
+    counties = cur.fetchall()
+
     conn.close()
-    if county:
-        return county[0]
+    if counties:
+        return [county[0] for county in counties]
     else:
         return None
 
@@ -88,7 +89,7 @@ def db_start_location(county, state, city):
         cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city = '%s' AND state = '%s' AND interesting = True;" % (city.title(), state.title()))
     a = cur.fetchall()
     conn.close()
-    return np.array(a)
+    return a
 
 def get_event_ids_list(trip_locations_id):
     '''
