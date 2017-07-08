@@ -38,6 +38,11 @@ class FullTripAddEventSerializer(serializers.Serializer):
     trip_location_id = serializers.CharField()
     full_trip_id = serializers.CharField()
 
+class OutsideTripAddSearchSerializer(serializers.Serializer):
+    full_trip_id = serializers.CharField()
+    poi_name = serializers.CharField(allow_blank=True)
+    trip_location_id = serializers.CharField()
+
 class IPGeoLocationSerializer(serializers.Serializer):
     ip = serializers.CharField()
 # class UserSerializer(serializers.ModelSerializer):

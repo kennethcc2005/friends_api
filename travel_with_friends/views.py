@@ -358,11 +358,11 @@ class OutsideTripAddSearch(APIView):
         #         else permissions.IsAuthenticated()),
     def get(self, request):
         # Validate the incoming input (provided through query parameters)
-        serializer = FullTripAddSearchSerializer(data=request.query_params)
+        serializer = OutsideTripAddSearchSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         # Get the model input
         data = serializer.validated_data
-        full_trip_id=data["full_trip_id"]
+        full_trip_id = data["full_trip_id"]
         poi_name = data["poi_name"]
         trip_location_id = data["trip_location_id"]
         poi_dict, poi_names = trip_update.add_search_event(poi_name, trip_location_id)
