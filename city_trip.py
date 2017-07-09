@@ -25,9 +25,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         full_trip_id = '-'.join([str(state.upper()), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days)])
     if not helpers.check_full_trip_id(full_trip_id, debug):
         trip_location_ids, full_trip_details,county_list_info =[],[],[]
-        print 'counties: ', counties
-        for county in counties: 
-            county_list_info.extend(helpers.db_start_location(county, state, city))
+        county_list_info = helpers.db_start_location(counties, state, city)
         county_list_info = np.array(county_list_info)
         # print county_list_info
         if county_list_info.shape[0] == 0:
