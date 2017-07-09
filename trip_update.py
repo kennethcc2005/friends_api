@@ -113,13 +113,13 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             return trip_locations_id, new_trip_location_id, day_detail
     else:
         if trip_locations_id.isupper() or trip_locations_id.islower():
-            new_trip_location_id = '-'.join(event_ids)+'-'+str(poi_id)
+            new_trip_location_id = '-'.join(map(str,event_ids))+'-'+str(poi_id)
         else:
             # db_event_cloest_distance(trip_locations_id=None,event_ids=None, event_type = 'add',new_event_id = None, city_name =None)
             print 'add: ', trip_locations_id, poi_id
             event_ids, event_type = db_event_cloest_distance(trip_locations_id=trip_locations_id, new_event_id=poi_id)
             event_ids, driving_time_list, walking_time_list = db_google_driving_walking_time(event_ids,event_type = 'add')
-            new_trip_location_id = '-'.join(event_ids)
+            new_trip_location_id = '-'.join(map(str,event_ids))
             event_ids = map(int,list(event_ids))
         cur.execute("select details from day_trip_table where trip_locations_id='%s'" %(new_trip_location_id)) 
         a = cur.fetchone()
@@ -137,6 +137,7 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             #need to make sure event detail can append to table!
             cur.execute("select max(index) from day_trip_table;")
             new_index = cur.fetchone()[0] +1
+            event_type = 'add'
             cur.execute("insert into day_trip_table (index, trip_locations_id,full_day, regular, county, state, details, event_type, event_ids) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s')" %(new_index, new_trip_location_id, full_day, False, county, state, str(details).replace("'",'"'), event_type, str(event_ids)))
             conn.commit()
             conn.close()
