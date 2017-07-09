@@ -77,17 +77,20 @@ def find_county(state, city):
     else:
         return None
 
-def db_start_location(county, state, city):
+def db_start_location(counties, state, city):
     '''
     Get numpy array of county related POIs.
     '''
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
-    if county:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE county = '%s' AND state = '%s' AND interesting = True;" % (county.upper(), state.title()))
+    a = []
+    if counties:
+        for county in counties:
+            cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE county = '%s' AND state = '%s' AND interesting = True;" % (county.upper(), state.title()))
+            a.extend(cur.fetchall())
     else:
         cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city = '%s' AND state = '%s' AND interesting = True;" % (city.title(), state.title()))
-    a = cur.fetchall()
+        a = cur.fetchall()
     conn.close()
     return a
 

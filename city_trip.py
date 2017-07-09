@@ -97,7 +97,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
                 cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
                 conn.commit()
             if counties:
-                cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, counties_str, state, json.dumps(details), event_type, str(list(event_ids))))
+                cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, json.dump(counties), state, json.dumps(details), event_type, str(list(event_ids))))
             else:
                 cur.execute("insert into day_trip_table (index, trip_locations_id, full_day, regular, county, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, counties, state, json.dumps(details), event_type, str(list(event_ids))))
             conn.commit()
@@ -112,7 +112,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         cur.execute("select max(index) from full_trip_table;")
         full_trip_index = cur.fetchone()[0] + 1
         if counties:
-            cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, counties_str, state, json.dumps(full_trip_details), n_days, visible))
+            cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, json.dump(counties), state, json.dumps(full_trip_details), n_days, visible))
         else:
             cur.execute("insert into full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, county, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, counties, state, json.dumps(full_trip_details), n_days, visible))
         conn.commit()
