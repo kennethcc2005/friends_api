@@ -129,7 +129,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         # trip_location_ids = ast.literal_eval(trip_location_ids)
 
         full_trip_details = json.loads(details)
-        trip_location_ids = json.loads(trip_location_ids)
+        # trip_location_ids = json.loads(trip_location_ids)
     print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
     return full_trip_id, full_trip_details, trip_location_ids
 
