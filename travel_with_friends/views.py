@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer
+        IPGeoLocationSerializer, OutsideTripAddSearchSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -367,13 +367,10 @@ class OutsideTripAddSearch(APIView):
         outside_route_id = data["outside_route_id"]
 
         # poi_dict, poi_names = trip_update.outside_add_search_event(poi_name, outside_route_id)
-        a, b, c, d = trip_update.outside_add_search_event(poi_name, outside_route_id)
-        print a, b, c, d
+        a, b= trip_update.outside_add_search_event(poi_name, outside_route_id)
+
         return Response({
-            "a": a,
-            "b": b,
-            "c": c,
-            "d": d,
+
         })
         
         # print 'welcome to add your search :)', poi_names, poi_dict
