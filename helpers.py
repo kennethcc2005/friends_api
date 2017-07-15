@@ -79,7 +79,7 @@ def find_county(state, city):
 
 def db_start_location(counties, state, city):
     '''
-    Get numpy array of county related POIs.
+    Get array of county related POIs.
     '''
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
@@ -93,6 +93,35 @@ def db_start_location(counties, state, city):
         a = cur.fetchall()
     conn.close()
     return a
+
+def db_start_city_poi(city, state):
+    '''
+    Get array of city related POIs.
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE city = '%s' AND state = '%s' AND interesting = True;" % (city.title(), state.title()))
+    a = cur.fetchall()
+    conn.close()
+    return a
+
+def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
+    '''
+    Get array of city and surrouding cities related POIs.
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT coord_lat, coord_long FROM city_state_coords_table WHERE city = '%s' AND state = '%s';" % (city.title(), state.title()))
+    coord_lat, coord_long = cur.fetchone()
+
+    for radius in [10,20,25,30,35]:
+        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true and ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius))
+        all_points = cur.fetchall()
+        if all_points:
+            if len(all_points)/num_poi_per_day >= n_days:
+                conn.close()
+                return all_points
+    return all_points
 
 def get_event_ids_list(trip_locations_id):
     '''
@@ -169,7 +198,7 @@ def check_NO_1(poi_list, city_name):
     return np.array(poi_list)
 
 
-def check_full_trip_id(full_trip_id, debug=True):
+def check_full_trip_id(full_trip_id):
     '''
     Check full trip id exist or not.  
     '''
@@ -179,10 +208,7 @@ def check_full_trip_id(full_trip_id, debug=True):
     a = cur.fetchone()
     conn.close()
     if bool(a):
-        if not debug:
-            return a[0]
-        else:
-            return True
+        return True
     else:
         return False
 
