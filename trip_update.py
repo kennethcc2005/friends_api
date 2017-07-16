@@ -61,8 +61,29 @@ def outside_add_search_event(poi_name, outside_route_id):
     city, state, event_ids = cur.fetchone()
     event_ids = json.loads(event_ids)
     new_event_ids = tuple(event_ids)
-    print new_event_ids, type(new_event_ids), event_ids, type(event_ids)
-    return new_event_ids, event_ids
+
+    cur.execute("SELECT index, coord_lat, coord_long FROM all_cities_coords_table WHERE city ='%s' AND state = '%s';" % (city, state))
+    id_, start_lat, start_long = cur.fetchone()
+    cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint({2},{3})) <= 100 * 1609.34 and name % '{1}'  ORDER BY similarity(name, '{1}') DESC LIMIT 7;".format(new_event_ids, poi_name, start_lat, start_long))
+
+    results = cur.fetchall()
+    if results > 0:
+        poi_ids, poi_lst = [int(row[0]) for row in results], [row[1] for row in results]
+    else:
+        poi_ids, poi_lst = [], []
+    # print 'add search result: ', poi_ids, poi_lst
+    if 7-len(poi_lst)>0:
+        event_ids.extend(poi_ids)
+        new_event_ids = str(tuple(event_ids))
+        cur.execute("SELECT index, name FROM poi_detail_table WHERE index NOT IN {0} AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint({1},{2})) <= 100 * 1609.34 ORDER BY num_reviews DESC LIMIT {3};".format(new_event_ids, start_lat, start_long, 7-len(poi_ids)))
+
+        results.extend(cur.fetchall())
+    poi_dict = {d[1]:d[0] for d in results}
+    poi_names = [d[1] for d in results]
+    conn.close()
+
+    return poi_dict, poi_names
+    # return results, len(results)
 
 
 
