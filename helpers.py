@@ -60,6 +60,23 @@ def check_valid_city(city, state):
     conn.close()
     return bool(c)
 
+def create_big_med_small_lst(day_lables, city_poi_list_info, v):
+    big_, med_, small_ = [], [], []
+    for ix, label in enumerate(day_labels):
+        if label == v:
+            time = city_poi_list_info[ix,3]
+            if time > 180 :
+                big_ix.append(ix)
+            elif time >= 120 :
+                med_ix.append(ix)
+            else:
+                small_ix.append(ix)
+    # print big_ix, med_ix, small_ix
+    big_ = helpers.sorted_events(city_poi_list_info, big_ix)
+    med_ = helpers.sorted_events(city_poi_list_info, med_ix)
+    small_ = helpers.sorted_events(city_poi_list_info, small_ix)
+    return big_, med_, small_
+
 def find_county(state, city):
     '''
     Only valid within the U.S.
@@ -115,13 +132,14 @@ def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
     coord_lat, coord_long = cur.fetchone()
 
     for radius in [10,20,25,30,35]:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true and ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius))
+        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true AND ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius))
         all_points = cur.fetchall()
+        available_days = len(all_points)/num_poi_per_day
         if all_points:
-            if len(all_points)/num_poi_per_day >= n_days:
+            if available_days >= n_days:
                 conn.close()
-                return all_points
-    return all_points
+                return all_points, n_days
+    return all_points, available_days
 
 def get_event_ids_list(trip_locations_id):
     '''
@@ -459,6 +477,22 @@ def db_day_trip_details(event_ids, i):
         cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state, icon_url, check_full_address, poi_type, adjusted_visit_length, img_url FROM poi_detail_table WHERE index = %s;" % (event_id))
         a = cur.fetchone()
         details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11]})
+    conn.close()
+    return details
+
+def db_city_day_trip_details(event_ids, i, city, state):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    details = []
+    #details dict includes: id, name,address, day
+    for event_id in event_ids:
+        cur.execute("SELECT index, name, address, coord_lat, coord_long, city, state, icon_url, check_full_address, poi_type, adjusted_visit_length, img_url FROM poi_detail_table WHERE index = %s;" % (event_id))
+        a = cur.fetchone()
+        if (city != a[5]) or (state != a[6]):
+            origin_city_state = False
+        else:
+            origin_city_state = True
+        details.append({'id': a[0],'name': a[1],'address': a[2], 'day': i, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11], 'origin_city_state': origin_city_state})
     conn.close()
     return details
 
