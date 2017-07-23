@@ -367,17 +367,18 @@ class OutsideTripAddSearch(APIView):
         outside_route_id = data["outside_route_id"]
 
         # poi_dict, poi_names = trip_update.outside_add_search_event(poi_name, outside_route_id)
-        a, b= trip_update.outside_add_search_event(poi_name, outside_route_id)
+        poi_names, poi_dict = trip_update.outside_add_search_event(poi_name, outside_route_id)
 
-        return Response({
-
-        })
-        
-        # print 'welcome to add your search :)', poi_names, poi_dict
         # return Response({
-        #     "poi_dict": poi_dict,
-        #     "poi_names": poi_names,
-        # })
+
+        #  })
+        
+
+        print 'welcome to add your search :)', poi_names, poi_dict
+        return Response({
+            "poi_dict": poi_dict,
+            "poi_names": poi_names,
+        })
 
 class OutsideTripAddEvent(APIView):
     # def get_permissions(self):

@@ -27,9 +27,7 @@ outside route table: route_id, event_id_lst, event_type, origin_city, state, dir
 
 def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1, full_day=True, regular=True, debug=True, username_id=1):
     outside_trip_id = '-'.join([str(origin_state.upper().replace(' ', '-')), str(origin_city.upper().replace(' ', '-')), target_direction,str(int(regular)), str(n_days)])
-    print origin_state
     origin_state = outside_helpers.check_state(origin_state)
-    print origin_state
 
     if not outside_helpers.check_outside_trip_id(outside_trip_id, debug):
         furthest_len = 100
@@ -106,7 +104,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             details = outside_helpers.db_outside_route_trip_details(event_ids, i)
 
             route_theme = outside_helpers.assign_theme(details)
-            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, str(event_ids), i, route_theme[0]]
+            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, i, route_theme[0]]
             route_theme.extend(info)
             
             details_theme.append(route_theme)
@@ -114,18 +112,26 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         info_to_psql = outside_helpers.clean_details(details_theme)
 
         for info in info_to_psql:
-            print " : ", len(info_to_psql)
+            # print " : ", len(info_to_psql)
             outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme = info
+            # print "route_theme: ", route_theme, " event_ids: ", event_ids
+            # print ""
+            # print "info_details", type(info_details)
+            
+            # print ""
+            # print info_details
+
+            event_ids = event_ids.tolist()
             outside_trip_details.append(info_details)
             outside_route_ids_list.append(outside_route_id)
-            event_id_list.append(list(event_ids))
+            event_id_list.append(event_ids)
 
 
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('select max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(list(event_ids)), i, route_theme))
+            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(event_ids), i, route_theme))
             conn.commit()
             conn.close()
 
@@ -200,7 +206,6 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
             big_ = outside_helpers.sorted_outside_events(city_infos, big_ix)
             med_ = outside_helpers.sorted_outside_events(city_infos, med_ix)
             small_ = outside_helpers.sorted_outside_events(city_infos, small_ix)
-
             event_ids, event_type = outside_helpers.create_outside_event_id_list(big_, med_, small_)
             event_ids, event_type = outside_helpers.db_outside_event_cloest_distance(coord_lat, coord_long, event_ids=event_ids, event_type=event_type)
             event_ids, google_ids, name_list, driving_time_list, walking_time_list = outside_helpers.db_outside_google_driving_walking_time(city_id, coord_lat, coord_long, event_ids, event_type, origin_city=origin_city, origin_state=origin_state)
@@ -236,7 +241,6 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
             cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(list(event_ids)), i, route_theme))
             conn.commit()
             conn.close()
-
         username_id = 1
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
@@ -254,10 +258,20 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
         cur = conn.cursor()
         cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
         outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
-        outside_trip_details = ast.literal_eval(outside_trip_details)
-        outside_route_ids_list = ast.literal_eval(outside_route_ids_list)
-
         conn.close()
+
+        # outside_trip_id = json.loads(outside_trip_id)
+        outside_trip_details = json.loads(outside_trip_details)
+        outside_route_ids_list = json.loads(outside_route_ids_list)
+
+        print "outside_trip_id", type(outside_trip_id)
+        print ""
+        print "outside_trip_details", type(outside_trip_details)
+        print ""
+        print "outside_route_ids", type(outside_route_ids_list)
+        # outside_trip_details = ast.literal_eval(outside_trip_details)
+        # outside_route_ids_list = ast.literal_eval(outside_route_ids_list)
+
         return outside_trip_id, outside_trip_details, outside_route_ids_list
 
 if __name__ == '__main__':
@@ -271,12 +285,12 @@ if __name__ == '__main__':
     print origin_city, origin_state
     for target_direction in direct:
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
-        print type(outside_trip_details)
-        print "outside_trip_id: ", outside_route_ids_list
-        print " "
-        for trip_d in outside_trip_details:
-            print "outside_trip_details", type(trip_d)
-            print "", trip_d
-            for trip_dd in trip_d:
-                print type(trip_dd)
+        # print type(outside_trip_details)
+        # print "outside_trip_id: ", outside_route_ids_list
+        # print " "
+        # for trip_d in outside_trip_details:
+        #     print "outside_trip_details", type(trip_d)
+        #     print "", trip_d
+        #     for trip_dd in trip_d:
+        #         print type(trip_dd)
     print time.time()- start_t
