@@ -217,7 +217,7 @@ def travel_outside_coords(current_city, current_state, direction=None, n_days=1)
 
     return id_, coords, coord_lat, coord_long
 
-def travel_outside_with_direction(origin_city, origin_state, target_direction, furthest_len, n_days=1):
+def travel_outside_with_direction(origin_city, origin_state, target_direction, trip_len, n_days=1):
     poi_info = []
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
@@ -225,12 +225,12 @@ def travel_outside_with_direction(origin_city, origin_state, target_direction, f
     cur.execute("SELECT index, coord_lat, coord_long FROM all_cities_coords_table WHERE city ='%s' AND state = '%s';" % (origin_city, origin_state))
     id_, start_lat, start_long = cur.fetchone()
 
-    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city != '%s' AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, start_long, start_lat, furthest_len))
-    item = cur.fetchall()
+    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city != '%s' AND state != '%s' AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, origin_state, start_long, start_lat, trip_len))
+    details = cur.fetchall()
     conn.close()
-    for coords in item:
-        if check_direction(start_lat, start_long, coords[1], coords[2], target_direction):
-            poi_info.append(coords)
+    for detail in details:
+        if check_direction(start_lat, start_long, detail[1], detail[2], target_direction):
+            poi_info.append(detail)
     return id_, start_lat, start_long, np.array(poi_info)
 
 def check_outside_trip_id(outside_trip_id, debug=False):
