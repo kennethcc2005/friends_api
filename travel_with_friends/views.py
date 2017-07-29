@@ -369,11 +369,6 @@ class OutsideTripAddSearch(APIView):
         # poi_dict, poi_names = trip_update.outside_add_search_event(poi_name, outside_route_id)
         poi_names, poi_dict = trip_update.outside_add_search_event(poi_name, outside_route_id)
 
-        # return Response({
-
-        #  })
-        
-
         print 'welcome to add your search :)', poi_names, poi_dict
         return Response({
             "poi_dict": poi_dict,

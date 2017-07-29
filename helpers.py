@@ -60,10 +60,12 @@ def check_valid_city(city, state):
     conn.close()
     return bool(c)
 
-def create_big_med_small_lst(day_lables, city_poi_list_info, v):
-    big_, med_, small_ = [], [], []
+def create_big_med_small_lst(day_labels, city_poi_list_info, v):
+    big_ix, med_ix, small_ix = [], [], []
+    city_poi_list_info = np.array(city_poi_list_info)
     for ix, label in enumerate(day_labels):
         if label == v:
+            
             time = city_poi_list_info[ix,3]
             if time > 180 :
                 big_ix.append(ix)
@@ -72,9 +74,13 @@ def create_big_med_small_lst(day_lables, city_poi_list_info, v):
             else:
                 small_ix.append(ix)
     # print big_ix, med_ix, small_ix
-    big_ = helpers.sorted_events(city_poi_list_info, big_ix)
-    med_ = helpers.sorted_events(city_poi_list_info, med_ix)
-    small_ = helpers.sorted_events(city_poi_list_info, small_ix)
+     
+    
+    city_poi_list_info =  np.array(city_poi_list_info[:,:-2].astype(np.float).tolist())
+    # print city_poi_list_info, type(city_poi_list_info)
+    big_ = sorted_events(city_poi_list_info, big_ix)
+    med_ = sorted_events(city_poi_list_info, med_ix)
+    small_ = sorted_events(city_poi_list_info, small_ix)
     return big_, med_, small_
 
 def find_county(state, city):
@@ -180,7 +186,7 @@ def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type=
             city_name = a[3]
         points.append(a)
     conn.close()
-    print 'clostest dist: ', event_ids, points, city_name
+    # print 'clostest dist: ', event_ids, points, city_name
     points = check_NO_1(points, city_name)
     n, D = distance.mk_matrix(points[:,1:3], distance.geopy_dist)
     if len(points) >= 3:
@@ -223,6 +229,20 @@ def check_full_trip_id(full_trip_id):
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
     cur.execute("SELECT details FROM full_trip_table WHERE full_trip_id = '%s';" %(full_trip_id))
+    a = cur.fetchone()
+    conn.close()
+    if bool(a):
+        return True
+    else:
+        return False
+
+def check_full_trip_id_city(full_trip_id):
+    '''
+    Check full trip id exist or not.  
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT details FROM full_trip_table_city WHERE full_trip_id = '%s';" %(full_trip_id))
     a = cur.fetchone()
     conn.close()
     if bool(a):

@@ -54,7 +54,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             cur = conn.cursor()
             cur.execute('SELECT MAX(index) from outside_trip_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');" % (new_index, username_id, outside_trip_id, '[]', '[]', origin_city, origin_state, target_direction, 0, regular, full_day, '[]'))
+            cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, username_id, outside_trip_id, '[]', '[]', origin_city, origin_state, target_direction, 0, regular, full_day, '[]'))
             conn.commit()
             conn.close()
             print "finish update None for %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
@@ -123,7 +123,7 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             
             # print ""
             # print info_details
-
+            print outside_route_id
             event_ids = event_ids.tolist()
             outside_trip_details.append(info_details)
             outside_route_ids_list.append(outside_route_id)
@@ -132,19 +132,20 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
 
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
-            cur.execute('select max(index) from outside_route_table;')
+            cur.execute('SELECT max(index) from outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(event_ids), i, route_theme))
+            cur.execute("INSERT into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, event_ids, i, route_theme))
             conn.commit()
             conn.close()
 
+        print event_id_list
 
         username_id = 1
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, json.dumps(outside_route_ids_list), json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, username_id, outside_trip_id, outside_route_ids_list, json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
 
         conn.commit()
         conn.close()
@@ -154,13 +155,13 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         print "ALERT: %s, %s, direction %s already in database" % (origin_state, origin_city, target_direction)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
+        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';"% (outside_trip_id))
         outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
         conn.close()
 
         # outside_trip_id = json.loads(outside_trip_id)
         outside_trip_details = json.loads(outside_trip_details)
-        outside_route_ids_list = json.loads(outside_route_ids_list)
+        # outside_route_ids_list = json.loads(outside_route_ids_list)
 
         print "outside_trip_id", type(outside_trip_id)
         print ""
@@ -178,10 +179,10 @@ if __name__ == '__main__':
     # print dir(outside_helpers)
 
     direct = ["E","S","W","N"]
-    origin_city = 'San Francisco'
+    origin_city = 'Los Gatos'
     origin_state = 'California'
     print origin_city, origin_state
-    for target_direction in direct:
+    for target_direction in direct[1]:
         outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city,origin_state, target_direction)
         # print type(outside_trip_details)
         # print "outside_trip_id: ", outside_route_ids_list

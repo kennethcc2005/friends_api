@@ -40,6 +40,8 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
         day_labels = kmeans.labels_
         day_order = helpers.kmeans_leabels_day_order(day_labels)
         # print day_labels, day_order
+        print "poi coord : ", poi_coords
+
         not_visited_poi_lst = []
         for i,v in enumerate(day_order):
             if counties:
@@ -130,7 +132,7 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
 
         # full_trip_details = json.loads(details)
         # trip_location_ids = json.loads(trip_location_ids)
-    print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
+    # print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
     return full_trip_id, full_trip_details, trip_location_ids
 
 
@@ -145,10 +147,11 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
         num_poi_per_day = 8
 
     full_trip_id = '-'.join([str(state.upper()).replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(n_days)])
-    if not helpers.check_full_trip_id(full_trip_id):
+    if not helpers.check_full_trip_id_city(full_trip_id):
         trip_location_ids, full_trip_details =[],[]
         #index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state
         city_poi_list_info = helpers.db_start_city_poi(city,state)
+
         available_days = len(city_poi_list_info)/num_poi_per_day
         if available_days < n_days:
             city_poi_list_info, available_days = helpers.db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day)
@@ -159,6 +162,7 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
             available_days = 0
             return full_trip_id, [], [], available_days
         poi_coords_lst = np.array(city_poi_list_info)[:,1:3]
+        # print "poi coord : ", poi_coords_lst
         kmeans = KMeans(n_clusters=available_days).fit(poi_coords_lst)
         day_labels = kmeans.labels_
         day_order = helpers.kmeans_leabels_day_order(day_labels)
@@ -167,26 +171,29 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
 
         for i,v in enumerate(day_order):
             day_trip_id = '-'.join([str(state).upper().replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(available_days),str(i)])
+            big_ix, small_ix, med_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
 
-            big_ix, small_ix, med_ix = helpers.create_big_med_small_lst(day_lables, city_poi_list_info, v)
-            event_ids, event_type = helpers.create_event_id_list(big_, med_, small_)
+            event_ids, event_type = helpers.create_event_id_list(big_ix, med_ix, small_ix)
             event_ids, event_type = helpers.db_event_cloest_distance(event_ids = event_ids, event_type = event_type, city_name = city)
             event_ids, driving_time_list, walking_time_list = helpers.db_google_driving_walking_time(event_ids, event_type)
             event_ids, driving_time_list, walking_time_list, total_time_spent, not_visited_poi_lst = \
                 helpers.db_adjust_events(event_ids, driving_time_list, walking_time_list, not_visited_poi_lst, event_type, city)
             details = helpers.db_city_day_trip_details(event_ids, i, city, state)
+
+
+            event_ids = event_ids.tolist()
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
-            cur.execute('SELECT max(index) FROM day_trip_table;')
+            cur.execute('SELECT max(index) FROM day_trip_table_city;')
             max_index = cur.fetchone()[0]
             index = max_index + 1
             if helpers.check_day_trip_id(day_trip_id):
-                cur.execute("SELECT index FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
+                cur.execute("SELECT index FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
                 cur = conn.cursor()                     
                 index = cur.fetchone()[0]
-                cur.execute("DELETE FROM day_trip_table WHERE trip_locations_id = '%s';" % (day_trip_id))
+                cur.execute("DELETE FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
                 conn.commit()
-            cur.execute("INSERT INTO day_trip_table (index, trip_locations_id, full_day, regular, city, state, details, event_type, event_ids) VALUES ( %s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s');" %(index, day_trip_id, full_day, regular, city, state, str(details).replace("'", "''"), event_type, str(list(event_ids))))
+            cur.execute("INSERT INTO day_trip_table_city (index, trip_locations_id, full_day, regular, city, state, details, event_type, event_ids) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s);",(index, day_trip_id, full_day, regular, city, state, json.dumps(details), event_type, json.dumps(event_ids)))
             conn.commit()
             conn.close()
             trip_location_ids.append(day_trip_id)
@@ -194,26 +201,26 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
         username_id = 1
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT max(index) FROM full_trip_table;")
+        cur.execute("SELECT max(index) FROM full_trip_table_city;")
         full_trip_index = cur.fetchone()[0] + 1
-        cur.execute("INSERT INTO full_trip_table(index, username_id, full_trip_id,trip_location_ids, regular, city, state, details, n_days, visible) VALUES (%s, %s, '%s', '%s', %s, '%s', '%s', '%s', %s, %s);" %(full_trip_index, username_id  , full_trip_id, str(trip_location_ids).replace("'","''"), regular, city, state, str(full_trip_details).replace("'", "''"), n_days, visible))
+        cur.execute("INSERT INTO full_trip_table_city (index, username_id, full_trip_id, trip_location_ids, regular, city, state, details, n_days, visible) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);" ,(full_trip_index, username_id  , full_trip_id, json.dumps(trip_location_ids), regular, city, state, json.dumps(full_trip_details), n_days, visible))
         conn.commit()
         conn.close()
         print "finish update %s, %s into database" %(state, city)
     else:
-        print "%s, %s already in database" %(state, str(counties))
+        print "%s, %s already in database" %(state, city)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" % (full_trip_id))
+        cur.execute("select trip_location_ids, details from full_trip_table_city where full_trip_id = '%s';" % (full_trip_id))
         trip_location_ids, details = cur.fetchone()
         conn.close()
 
-        full_trip_details = ast.literal_eval(details)
-        trip_location_ids = ast.literal_eval(trip_location_ids)
+        full_trip_details = json.loads(details)
+        trip_location_ids = json.loads(trip_location_ids)
 
         # full_trip_details = json.loads(details)
         # trip_location_ids = json.loads(trip_location_ids)
-    print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
+    # print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
     return full_trip_id, full_trip_details, trip_location_ids
     # counties = helpers.find_county(state, city)
     # n_days = int(n_days)
@@ -333,9 +340,10 @@ if __name__ == '__main__':
     print origin_city, origin_state
     days = [1,2,3,4,5]
     for n_days in days:
-        full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
-        print type(full_trip_details)
-        print full_trip_details
+        full_trip_id, full_trip_details, trip_location_ids = get_city_trip_data(origin_state, origin_city, n_days)
+        # full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
+        print type(full_trip_details), type(trip_location_ids)
+        # print full_trip_details
 
     print time.time()-start_t
 
