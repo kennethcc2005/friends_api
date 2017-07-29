@@ -222,9 +222,10 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
 
         full_trip_details = json.loads(details)
         trip_location_ids = json.loads(trip_location_ids)
+        trip_location_ids =[str(x) for x in trip_location_ids]
+        print trip_location_ids, type(trip_location_ids)
 
-
-    print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
+    # print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
 
     return full_trip_id, full_trip_details, trip_location_ids
    
@@ -239,8 +240,9 @@ if __name__ == '__main__':
     for n_days in days:
         full_trip_id, full_trip_details, trip_location_ids = get_city_trip_data(origin_state, origin_city, n_days)
         # full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
-        print type(full_trip_details), type(trip_location_ids)
-        # print full_trip_details
+        # print type(full_trip_details), type(trip_location_ids)
+        for i in trip_location_ids:
+            print type(i)
 
     print time.time()-start_t
 
