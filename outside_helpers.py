@@ -225,7 +225,7 @@ def travel_outside_with_direction(origin_city, origin_state, target_direction, t
     cur.execute("SELECT index, coord_lat, coord_long FROM all_cities_coords_table WHERE city ='%s' AND state = '%s';" % (origin_city, origin_state))
     id_, start_lat, start_long = cur.fetchone()
 
-    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE city != '%s' AND state != '%s' AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, origin_state, start_long, start_lat, trip_len))
+    cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews FROM poi_detail_table WHERE NOT (city = '%s' AND state = '%s') AND interesting = True AND ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;" % (origin_city, origin_state, start_long, start_lat, trip_len))
     details = cur.fetchall()
     conn.close()
     for detail in details:
