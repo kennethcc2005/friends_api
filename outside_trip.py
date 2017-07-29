@@ -164,14 +164,14 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
     origin_state = outside_helpers.check_state(origin_state)
 
     if not outside_helpers.check_outside_trip_id(outside_trip_id):
-        city_id, coord_lat, coord_long, city_infos = outside_helpers.travel_outside_with_direction(origin_city, origin_state, target_direction, trip_len, n_days=1)
+        city_id, coord_lat, coord_long, city_infos = outside_helpers.travel_outside_with_direction(origin_city, origin_state, target_direction, trip_len)
         if len(city_infos) <= 0:
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('SELECT MAX(index) FROM outside_trip_table;')
             new_index = cur.fetchone()[0] + 1
             # need to fix empty list as string, need psql array with empty values
-            cur.execute("INSERT INTO outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');" % (new_index, username_id, outside_trip_id, '[]', '[]', origin_city, origin_state, target_direction, 0, regular, True, '[]'))
+            cur.execute("INSERT INTO outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');", (new_index, username_id, outside_trip_id, [], [], origin_city, origin_state, target_direction, 0, regular, True, []))
             conn.commit()
             conn.close()
             print "finish update None for %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)

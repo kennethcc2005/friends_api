@@ -217,7 +217,7 @@ def travel_outside_coords(current_city, current_state, direction=None, n_days=1)
 
     return id_, coords, coord_lat, coord_long
 
-def travel_outside_with_direction(origin_city, origin_state, target_direction, trip_len, n_days=1):
+def travel_outside_with_direction(origin_city, origin_state, target_direction, trip_len):
     poi_info = []
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
