@@ -17,7 +17,7 @@ from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.views import APIView
-from city_trip import get_fulltrip_data
+from city_trip import *
 from helpers import *
 from outside_trip import outside_trip_poi
 from outside_helpers import *
@@ -56,12 +56,12 @@ def create_auth(request):
 
 class FullTripDetail(APIView):
     def get(self, request, full_trip_id):
-        valid_full_trip = check_full_trip_id(full_trip_id)
+        valid_full_trip = check_full_trip_id_city(full_trip_id)
         if not valid_full_trip:
             return Response({
             "error_trip_id": '%s is not a valid full trip id.' % (full_trip_id),
         }, status=400)
-        full_trip_id, full_trip_details, trip_location_ids = get_exisiting_full_trip_details(full_trip_id)
+        full_trip_id, full_trip_details, trip_location_ids = get_exisiting_full_trip_details_city(full_trip_id)
         return Response({
             "full_trip_id": full_trip_id,
             "full_trip_details": full_trip_details,
@@ -116,7 +116,7 @@ class FullTripSearch(APIView):
             return Response({
             "error_location": '%s is not valid city name for state %s' % (city, checked_state),
         }, status=400)
-        full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(state=checked_state, city=city, n_days=n_days)
+        full_trip_id, full_trip_details, trip_location_ids = get_city_trip_data(state=checked_state, city=city, n_days=n_days)
         
         return Response({
             "full_trip_id": full_trip_id,

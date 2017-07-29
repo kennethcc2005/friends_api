@@ -25,6 +25,17 @@ def get_exisiting_full_trip_details(full_trip_id):
     trip_location_ids = ast.literal_eval(trip_location_ids)
     return full_trip_id, full_trip_details, trip_location_ids
 
+def get_exisiting_full_trip_details_city(full_trip_id):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("select trip_location_ids, details from full_trip_table_city where full_trip_id = '%s';" % (full_trip_id))
+    trip_location_ids, details = cur.fetchone()
+    conn.close()
+    full_trip_details = json.loads(details)
+    trip_location_ids = json.loads(trip_location_ids)
+    trip_location_ids =[str(x) for x in trip_location_ids]
+    return full_trip_id, full_trip_details, trip_location_ids
+
 def get_exisiting_outside_trip_details(outside_trip_id):
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
@@ -164,13 +175,30 @@ def get_event_ids_list(trip_locations_id):
     conn.close()
     return event_ids, event_type
 
+def get_event_ids_list_city(trip_locations_id):
+    '''
+    Input: trip_locations_id
+    Output: evnet_ids, event_type = ['big', 'small', 'med', 'add',]
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT event_ids,event_type FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (trip_locations_id))
+    event_ids, event_type = cur.fetchone()
+    print "At helper.get_event_ids_list before convert_event_ids_to_lst", event_ids, type(event_ids)
+    if type(event_ids) != list:
+        event_ids = ast.literal_eval(event_ids)
+    # event_ids = convert_event_ids_to_lst(event_ids)
+    print "At helper.get_event_ids_list after convert_event_ids_to_lst", event_ids, type(event_ids)
+    conn.close()
+    return event_ids, event_type
 
 def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type='add', new_event_id=None, city_name=None):
     '''
     Get matrix cloest distance
     '''
     if new_event_id or not event_ids:
-        event_ids, event_type = get_event_ids_list(trip_locations_id)
+        # event_ids, event_type = get_event_ids_list(trip_locations_id)
+        event_ids, event_type = get_event_ids_list_city(trip_locations_id)
         print 'event_ids: ', event_ids, type(event_ids), trip_locations_id
         if new_event_id:
             event_ids.append(new_event_id)
@@ -264,6 +292,20 @@ def check_day_trip_id(day_trip_id):
     else:
         return False
 
+def check_day_trip_id_city(day_trip_id):
+    '''
+    Check day trip id exist or not.  
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor() 
+    cur.execute("SELECT details FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
+    a = cur.fetchone()
+    conn.close()
+    if bool(a):
+        return True
+    else:
+        return False
+        
 def check_travel_time_id(new_id):
     '''
     Check google driving time exisit or not for the 2 point poi id.

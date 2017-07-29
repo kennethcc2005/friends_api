@@ -135,15 +135,13 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             conn.commit()
             conn.close()
 
-<<<<<<< HEAD
-        print event_id_list
-=======
+
         username_id = 1
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
-        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s, %s, %s,'%s');" % (new_index, username_id, outside_trip_id, json.dumps(outside_route_ids_list), json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
+        cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,%s, %s, %s,%s, %s, %s, %s, %s, %s, %s,%s);" , (new_index, username_id, outside_trip_id, outside_route_ids_list, json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
 
         conn.commit()
         conn.close()
@@ -155,8 +153,8 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         cur = conn.cursor()
         cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';" % (outside_trip_id))
         outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
-        outside_trip_details = ast.literal_eval(outside_trip_details)
-        outside_route_ids_list = ast.literal_eval(outside_route_ids_list)
+        outside_trip_details = json.loads(outside_trip_details)
+        outside_route_ids_list = json.loads(outside_route_ids_list)
 
         conn.close()
         return outside_trip_id, outside_trip_details, outside_route_ids_list
@@ -228,7 +226,7 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
             route_theme.extend(info)
             
             details_theme.append(route_theme)
->>>>>>> 5534f6ef4b31dc011095fd84c8cddb89095aa806
+
 
         info_to_psql = outside_helpers.clean_details(details_theme)
 

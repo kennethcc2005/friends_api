@@ -15,12 +15,8 @@ router.register(r'users', views.UserViewSet)
 # Additionally, we include the login URLs for the browsable API.
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'full_trip/(?P<full_trip_id>[^\.]+)/$',
-        views.FullTripDetail.as_view(),
-        name='full_trip_detail'),
-    url(r'outside_trip/(?P<outside_trip_id>[^\.]+)/$',
-        views.OutsideTripDetail.as_view(),
-        name='outside_trip_detail'),
+    url(r'full_trip/(?P<full_trip_id>[^\.]+)/$', views.FullTripDetail.as_view(), name='full_trip_detail'),
+    url(r'outside_trip/(?P<outside_trip_id>[^\.]+)/$', views.OutsideTripDetail.as_view(), name='outside_trip_detail'),
     url(r'^full_trip_search/$', views.FullTripSearch.as_view(), name='full-trip-detail'),
     url(r'^outside_trip_search/$', views.OutsideTripSearch.as_view(), name='outside-trip-detail'),
     url(r'^city_state_search/$', views.CityStateSearch.as_view(), name='city-state-detail'), 

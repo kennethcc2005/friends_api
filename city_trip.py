@@ -187,7 +187,8 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
             cur.execute('SELECT max(index) FROM day_trip_table_city;')
             max_index = cur.fetchone()[0]
             index = max_index + 1
-            if helpers.check_day_trip_id(day_trip_id):
+            print day_trip_id
+            if helpers.check_day_trip_id_city(day_trip_id):
                 cur.execute("SELECT index FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
                 cur = conn.cursor()                     
                 index = cur.fetchone()[0]
@@ -241,8 +242,8 @@ if __name__ == '__main__':
         full_trip_id, full_trip_details, trip_location_ids = get_city_trip_data(origin_state, origin_city, n_days)
         # full_trip_id, full_trip_details, trip_location_ids = get_fulltrip_data(origin_state, origin_city, n_days)
         # print type(full_trip_details), type(trip_location_ids)
-        for i in trip_location_ids:
-            print type(i)
+        # for i in trip_location_ids:
+        #     print type(i)
 
     print time.time()-start_t
 
