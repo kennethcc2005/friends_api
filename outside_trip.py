@@ -5,6 +5,7 @@ import psycopg2
 import os
 import json
 import ast
+import scipy.stats as scs
 from sklearn.cluster import KMeans
 from django.utils import timezone
 
@@ -59,6 +60,9 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             print "finish update None for %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
             return outside_trip_id, [], []
         poi_coords = city_infos[:, 1:3]
+        #control n_routes from either big events or num_reviews
+        # mean = scs.describe(city_infos[:,6]).mean
+        # n_routes=sum(1 for t in city_infos[:, 6] if t >= mean) / 5
         n_routes = sum(1 for t in np.array(city_infos)[:, 3] if t >= 120) / 10
 
         if (n_routes > 1) and (city_infos.shape[0] >= 10):
@@ -172,13 +176,15 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
             cur.execute('SELECT MAX(index) FROM outside_trip_table;')
             new_index = cur.fetchone()[0] + 1
             # need to fix empty list as string, need psql array with empty values
-            cur.execute("INSERT INTO outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,'%s', '%s', '%s','%s', '%s', '%s', '%s', %s,%s,%s,'%s');", (new_index, username_id, outside_trip_id, [], [], origin_city, origin_state, target_direction, 0, regular, True, []))
+            cur.execute("INSERT INTO outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s,%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s);", (new_index, username_id, outside_trip_id, [], [], origin_city, origin_state, target_direction, 0, regular, True, []))
             conn.commit()
             conn.close()
             print "finish update None for %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
             return outside_trip_id, [], []
         poi_coords = city_infos[:, 1:3]
-        n_routes = sum(1 for t in np.array(city_infos)[:, 3] if t >= 120) / 10
+        # n_routes = sum(1 for t in np.array(city_infos)[:, 3] if t >= 120) / 10
+        mean_score = scs.describe(city_infos[:,6]).mean
+        n_routes=sum(1 for t in city_infos[:, 6] if t >= mean_score) / 5
 
         if (n_routes > 1) and (city_infos.shape[0] >= 10):
             kmeans = KMeans(n_clusters=n_routes).fit(poi_coords)

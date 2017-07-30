@@ -489,7 +489,7 @@ def create_outside_event_id_list(big_, medium_, small_):
     # print big_,medium_,small_
     event_type = ''
     if big_.shape[0] >= 1:
-        if (medium_.shape[0] < 2) or (big_[0,1] >= medium_[0, 1]):
+        if (medium_.shape[0] < 2) or (big_[0,3] >= medium_[0, 3]):
             if small_.shape[0] >= 6:
                 event_ids = list(np.concatenate((big_[:1, 0], small_[0:6, 0]), axis=0))
             elif small_.shape[0] > 0:
@@ -554,7 +554,7 @@ def assign_theme(details):
         all_type.append([i["poi_type"], i["adjusted_visit_length"], i["num_reviews"], i["ranking"], i["review_score"]])
 
     for i in all_type:
-        for key, value in theme_list_dict.items():
+        for key, value in theme_list_dict.iteritems():
             if i[0] in value: #locate the theme 
                 assign_dict[key] += int(i[1]) #total time of theme
                 assign_dict2[key] += int(i[2]) #total # of review of theme
