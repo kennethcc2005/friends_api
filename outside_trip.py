@@ -259,7 +259,7 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
         print "ALERT: %s, %s, direction %s already in database" % (origin_state, origin_city, target_direction)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = '%s';"% (outside_trip_id))
+        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = %s;", (outside_trip_id))
         outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
         conn.close()
 
