@@ -227,26 +227,21 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
                 conn.close()
             details = outside_helpers.db_outside_route_trip_details(event_ids, i)
 
-            route_theme = outside_helpers.assign_theme(details)
-            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, str(event_ids), i, route_theme[0]]
-            route_theme.extend(info)
-            
-            details_theme.append(route_theme)
+            route_theme, route_theme_scores = outside_helpers.assign_theme(details)
+            info = [outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, i, route_theme, route_theme_scores]
+            info_routes.append(info)
+        info_routes = outside_helpers.clean_details(info_routes)
 
-
-        info_to_psql = outside_helpers.clean_details(details_theme)
-
-        for info in info_to_psql:
-            print " : ", len(info_to_psql)
-            outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme = info
+        for info in info_routes:
+            outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme, route_theme_scores = info
             outside_trip_details.append(info_details)
             outside_route_ids_list.append(outside_route_id)
-            event_id_list.append(list(event_ids))
+            event_id_list.append(event_ids)
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
-            cur.execute('select max(index) from outside_route_table;')
+            cur.execute('SELECT MAX(index) FROM outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("insert into outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme) VALUES (%s, '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s');" % (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(list(event_ids)), i, route_theme))
+            cur.execute("INSERT INTO outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme, route_theme_scores) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(event_ids), i, route_theme, route_theme_scores))
             conn.commit()
             conn.close()
         username_id = 1
