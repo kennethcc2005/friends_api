@@ -313,11 +313,10 @@ class FullTripSuggestConfirm(APIView):
         data = request.data
         print data, 'bug??'
         full_trip_id=data["fullTripId"]
-
         update_suggest_event = data["updateSuggestEvent"]
         update_trip_location_id = data["updateTripLocationId"]
         print full_trip_id,update_trip_location_id
-        print 'my boi: ', update_suggest_event
+        print 'my boi: ', update_suggest_event, type(update_suggest_event)
         username_id = 1
 
         new_full_trip_id, new_full_trip_details, full_trip_trip_locations_id, new_update_trip_location_id = trip_update.switch_suggest_event(full_trip_id, update_trip_location_id, update_suggest_event, username_id)
