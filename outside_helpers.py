@@ -622,7 +622,7 @@ def assign_theme(details):
             score = 9
         else:
             score = reviews_rate * visit_length_rate
-        type_family = theme_list_invert(i['poi_type'])
+        type_family = theme_list_invert[i['poi_type']]
         family_scores[type_family] += score
     theme = max(family_scores, key=family_scores.get)
     theme_score = family_scores['theme']
@@ -646,13 +646,13 @@ def uniq_themes(info_routes):
     check = []
     remind = []
     for x in info_routes:
-    if x[10] == 'national_park':
-        output.append(x)
-    elif x[10] not in check:
-        output.append(x)
-        check.append(x[10])
-    else:
-        remind.append(x)
+        if x[10] == 'national_park':
+            output.append(x)
+        elif x[10] not in check:
+            output.append(x)
+            check.append(x[10])
+        else:
+            remind.append(x)
     output.extend(remind)
     return output
   

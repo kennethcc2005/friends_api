@@ -19,7 +19,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.views import APIView
 from city_trip import *
 from helpers import *
-from outside_trip import outside_trip_poi
+from outside_trip import outside_trip_poi, outside_one_day_trip
 from outside_helpers import *
 from rest_framework.permissions import AllowAny
 # from django.contrib.auth import get_user_model # If used custom user model
@@ -152,7 +152,7 @@ class OutsideTripSearch(APIView):
             "error_location": '%s is not valid city name for state %s' %(city, checked_state),
         }, status=400)
         # print 'outsdie trip: ', city, state, direction
-        outside_trip_id, outside_trip_details, outside_route_ids_list = outside_trip_poi(origin_city=city, origin_state=checked_state, target_direction=direction, full_day=True, regular=True, debug=True, username_id=1)
+        outside_trip_id, outside_trip_details, outside_route_ids_list = outside_one_day_trip(origin_city=city, origin_state=checked_state, target_direction=direction, regular=True, username_id=1)
         if not outside_trip_details or not outside_route_ids_list:
             return Response({
             "error_no_poi": 'direction %s of  %s has no interesting place to go, please choose another direction' % (direction ,city),
