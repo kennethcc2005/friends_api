@@ -458,7 +458,7 @@ def db_remove_outside_extra_events(event_ids, driving_time_list, walking_time_li
         return event_ids, driving_time_list, walking_time_list, time_spent
 
 
-def check_outside_route_id(outside_route_id, debug = True):
+def check_outside_route_id(outside_route_id):
     '''
     Check day trip id exist or not.  
     '''
@@ -468,10 +468,7 @@ def check_outside_route_id(outside_route_id, debug = True):
     a = cur.fetchone()
     conn.close()
     if bool(a):
-        if not debug:
-            return a[0]
-        else:
-            return True
+        return True
     else:
         return False
 

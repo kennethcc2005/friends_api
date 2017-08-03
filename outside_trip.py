@@ -20,6 +20,11 @@ conn_str = api_key_list["conn_str"]
 '''
 Outside trip table: user_id, outside_trip_id, route_ids, origin_city, state, direction, n_days, default, full_day, details 
 outside route table: route_id, event_id_lst, event_type, origin_city, state, direction, details, default, 
+update outside_trip_table set outside_route_ids = '{CALIFORNIA-LOS-GATOS-S-1-1-0,CALIFORNIA-LOS-GATOS-S-1-1-3,CALIFORNIA-LOS-GATOS-S-1-1-1}' where index = 0; 
+ALTER TABLE outside_trip_table ALTER COLUMN outside_route_ids TYPE text[] using outside_route_ids::text[];
+update outside_route_table set event_ids = '{1,2,3,4,5}' where index = 0; 
+ALTER TABLE outside_route_table ALTER COLUMN event_ids TYPE text[] using event_ids::text[];
+
 '''
 # target_direction = 'N'
 # origin_city = 'San Francisco'
@@ -125,11 +130,12 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
             # print ""
             # print info_details
             print outside_route_id
+            print 'event_ids', event_ids
             event_ids = event_ids.tolist()
             outside_trip_details.append(info_details)
             outside_route_ids_list.append(outside_route_id)
             event_id_list.append(event_ids)
-
+            print 'after: ', event_ids
 
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
@@ -228,6 +234,7 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N',regular
                 cur.execute("DELETE FROM outside_route_table WHERE outside_route_id = '%s';" % (outside_route_id))
                 conn.commit()
                 conn.close()
+                print 'delete exisiting route id: ', outside_route_id
             details = outside_helpers.db_outside_route_trip_details(event_ids, i)
 
             route_theme, route_theme_scores = outside_helpers.assign_theme(details)
@@ -239,12 +246,14 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N',regular
             outside_route_id, full_day, regular, origin_city, origin_state, target_direction, info_details, event_type, event_ids, i, route_theme, route_theme_scores = info
             outside_trip_details.append(info_details)
             outside_route_ids_list.append(outside_route_id)
+            event_ids = list(event_ids)
             event_id_list.append(event_ids)
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('SELECT MAX(index) FROM outside_route_table;')
             new_index = cur.fetchone()[0] + 1
-            cur.execute("INSERT INTO outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme, route_theme_scores) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, json.dumps(event_ids), i, route_theme, route_theme_scores))
+            # print 'before insert: ', new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, list(event_ids), i, route_theme, route_theme_scores
+            cur.execute("INSERT INTO outside_route_table (index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, details, event_type, event_ids, route_num, route_theme, route_theme_scores) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, outside_route_id, full_day, regular, origin_city, origin_state, target_direction, json.dumps(info_details), event_type, event_ids, i, route_theme, route_theme_scores))
             conn.commit()
             conn.close()
         username_id = 1
@@ -253,7 +262,6 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N',regular
         cur.execute('SELECT MAX(index) from outside_trip_table;')
         new_index = cur.fetchone()[0] +1
         cur.execute("INSERT into outside_trip_table(index, username_id, outside_trip_id, outside_route_ids, event_id_lst, origin_city, origin_state, target_direction, n_routes, regular, full_day, outside_trip_details) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", (new_index, username_id, outside_trip_id, outside_route_ids_list, json.dumps(event_id_list), origin_city, origin_state, target_direction, n_routes, regular, full_day, json.dumps(outside_trip_details)))
-
         conn.commit()
         conn.close()
         print "finish update %s, %s, direction %s into database" % (origin_state, origin_city, target_direction)
@@ -262,8 +270,12 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N',regular
         print "ALERT: %s, %s, direction %s already in database" % (origin_state, origin_city, target_direction)
         conn = psycopg2.connect(conn_str)
         cur = conn.cursor()
-        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = %s;", (outside_trip_id))
+        print 'outside id', outside_trip_id, type(outside_trip_id)
+        cur.execute("SELECT DISTINCT outside_trip_id, outside_trip_details, outside_route_ids FROM outside_trip_table WHERE outside_trip_id = %s;", (outside_trip_id,))
         outside_trip_id, outside_trip_details, outside_route_ids_list= cur.fetchone()
+        cur.execute("SELECT event_ids from outside_route_table where outside_route_id = 'CALIFORNIA-SAN-FRANCISCO-N-1-1-0';")
+        ids = cur.fetchone()[0]
+        print 'ids: ', type(ids), ids
         conn.close()
 
         # outside_trip_id = json.loads(outside_trip_id)
