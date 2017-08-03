@@ -164,7 +164,10 @@ def outside_trip_poi(origin_city, origin_state, target_direction='N', n_days =1,
         return outside_trip_id, outside_trip_details, outside_route_ids_list
 
 
-def outside_one_day_trip(origin_city, origin_state, target_direction='N', regular=True, username_id=1, trip_len = 100):
+def outside_one_day_trip(origin_city, origin_state, target_direction='N',regular=True, username_id=1, trip_len = 100, n_days =1, full_day=True):
+    '''
+    remove full day
+    '''
     outside_trip_id = '-'.join([str(origin_state.upper().replace(' ', '-')), str(origin_city.upper().replace(' ', '-')), target_direction,str(int(regular)), str(n_days)])
     origin_state = outside_helpers.check_state(origin_state)
 
@@ -195,7 +198,7 @@ def outside_one_day_trip(origin_city, origin_state, target_direction='N', regula
         route_labels = kmeans.labels_
         # print n_routes, len(route_labels), city_infos.shape
         # print route_labels
-        outside_route_ids_list, outside_trip_details, details_theme, event_id_list =[], [], [], []
+        outside_route_ids_list, outside_trip_details, event_id_list, info_routes =[], [], [], []
         for i in range(n_routes):
             current_events, big_ix, med_ix, small_ix = [], [], [], []
             for ix, label in enumerate(route_labels):
