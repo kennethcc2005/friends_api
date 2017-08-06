@@ -171,7 +171,7 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
 
         for i,v in enumerate(day_order):
             day_trip_id = '-'.join([str(state).upper().replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(available_days),str(i)])
-            big_ix, small_ix, med_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
+            big_ix, med_ix,small_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
 
             event_ids, event_type = helpers.create_event_id_list(big_ix, med_ix, small_ix)
             event_ids, event_type = helpers.db_event_cloest_distance(event_ids = event_ids, event_type = event_type, city_name = city)
