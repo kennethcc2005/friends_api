@@ -24,6 +24,7 @@ update outside_trip_table set outside_route_ids = '{CALIFORNIA-LOS-GATOS-S-1-1-0
 ALTER TABLE outside_trip_table ALTER COLUMN outside_route_ids TYPE text[] using outside_route_ids::text[];
 update outside_route_table set event_ids = '{1,2,3,4,5}' where index = 0; 
 ALTER TABLE outside_route_table ALTER COLUMN event_ids TYPE text[] using event_ids::text[];
+ALTER TABLE full_trip_table ALTER COLUMN day_created set default current_timestamp;
 
 '''
 # target_direction = 'N'
