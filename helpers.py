@@ -654,13 +654,16 @@ def serach_city_state(city_state):
         city = city_state.split(',')[0].strip()
         state = city_state.split(',')[1].strip()
         # cur.execute("SELECT city, state_abb FROM city_state_coords_table WHERE city % '{0}' AND (state % '{1}' or state_abb % '{1}') order by similarity(city, '{0}') desc limit 5;".format(city,state))
-        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text) FROM (select distinct city, state_abb, state FROM poi_detail_table) AS temp WHERE temp.city % '{0}' AND (temp.state % '{1}' OR temp.state_abb % '{1}') ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city, state))
+        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text), similarity(temp.city, '{0}') FROM (select distinct city, state_abb, state FROM poi_detail_table) AS temp WHERE temp.city % '{0}' AND (temp.state % '{1}' OR temp.state_abb % '{1}') ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city, state))
     else:
         city = city_state.strip()
         # cur.execute("SELECT city, state_abb, concat_ws(', ',city::text, state_abb::text) FROM city_state_coords_table WHERE city % '{0}' order by similarity(city, '{0}') desc limit 5;".format(city))
-        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text) FROM (select distinct city, state_abb FROM poi_detail_table) AS temp WHERE temp.city % '{0}' ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city))
+        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text), similarity(temp.city, '{0}') FROM (select distinct city, state_abb FROM poi_detail_table) AS temp WHERE temp.city % '{0}' ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city))
     c = cur.fetchall()
     conn.close()
+    if bool(c):
+        if c[0][3] == 1 and c[1][3] != 1:
+            return [c[0]]
     return c
 
 

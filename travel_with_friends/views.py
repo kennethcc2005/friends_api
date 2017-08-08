@@ -181,7 +181,7 @@ class CityStateSearch(APIView):
         city_state = serach_city_state(city_state)
         city = [i[0] for i in city_state]
         state = [i[1] for i in city_state]
-        city_and_state = [i[-1] for i in city_state]
+        city_and_state = [i[2] for i in city_state]
 
         return Response({
             "city_state": city_and_state,
