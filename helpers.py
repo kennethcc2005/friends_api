@@ -662,6 +662,8 @@ def serach_city_state(city_state):
     c = cur.fetchall()
     conn.close()
     if bool(c):
+        if len(c) == 1:
+            return c
         if c[0][3] == 1 and c[1][3] != 1:
             return [c[0]]
     return c
