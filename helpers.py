@@ -138,7 +138,7 @@ def db_start_city_poi(city, state):
     conn.close()
     return a
 
-def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
+def db_city_and_surrounding_poi(city, state, need_days, num_poi_per_day):
     '''
     Get array of city and surrouding cities related POIs.
     '''
@@ -148,14 +148,15 @@ def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
     coord_lat, coord_long = cur.fetchone()
 
     for radius in [10,20,25,30,35]:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true AND ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius))
+        query = "SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true AND (city != '{3}' OR state != '{4}') AND ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius, city, state)
+        cur.execute(query)
         all_points = cur.fetchall()
-        available_days = len(all_points)/num_poi_per_day
+        available_surr_days = len(all_points)/num_poi_per_day
+        conn.close()
         if all_points:
-            if available_days >= n_days:
-                conn.close()
-                return all_points, n_days
-    return all_points, available_days
+            if available_surr_days >= need_days:
+                return all_points, need_days
+    return all_points, available_surr_days
 
 def get_event_ids_list(trip_locations_id):
     '''

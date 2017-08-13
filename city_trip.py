@@ -135,6 +135,17 @@ def get_fulltrip_data(state, city, n_days, full_day=True, regular=True, debug=Tr
     # print 'full trip notes: ', full_trip_id, full_trip_details, trip_location_ids
     return full_trip_id, full_trip_details, trip_location_ids
 
+def create_day_trip(day_labels, city_poi_list_info, city, state, regular, available_days, i, v, not_visited_poi_lst):
+    day_trip_id = '-'.join([str(state).upper().replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(available_days),str(i)])
+    big_ix, med_ix,small_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
+    event_ids, event_type = helpers.create_event_id_list(big_ix, med_ix, small_ix)
+    event_ids, event_type = helpers.db_event_cloest_distance(event_ids = event_ids, event_type = event_type, city_name = city)
+    event_ids, driving_time_list, walking_time_list = helpers.db_google_driving_walking_time(event_ids, event_type)
+    event_ids, driving_time_list, walking_time_list, total_time_spent, not_visited_poi_lst = \
+        helpers.db_adjust_events(event_ids, driving_time_list, walking_time_list, not_visited_poi_lst, event_type, city)
+    details = helpers.db_city_day_trip_details(event_ids, i, city, state)
+    event_ids = event_ids.tolist()
+    return day_trip_id, event_ids, event_type, details, not_visited_poi_lst
 
 def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_speed='normal', visible=True):
     '''
@@ -153,35 +164,34 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
         city_poi_list_info = helpers.db_start_city_poi(city,state)
 
         available_days = len(city_poi_list_info)/num_poi_per_day
+        available_surr_days, city_surr_poi_list_info = 0, []
+        city_day_labels, city_day_order, city_surr_day_labels,city_surr_day_order = [],[],[],[]
         if available_days < n_days:
-            city_poi_list_info, available_days = helpers.db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day)
+            city_surr_poi_list_info, available_surr_days = helpers.db_city_and_surrounding_poi(city, state, n_days-available_days, num_poi_per_day)
         else: 
             available_days = n_days
-        if not city_poi_list_info:
+        if (not city_poi_list_info) and (not city_surr_poi_list_info):
             print 'there is no availables pois for the city {0}, {1} and surrounding areas'.format(city, state)
             available_days = 0
             return full_trip_id, [], [], available_days
-        poi_coords_lst = np.array(city_poi_list_info)[:,1:3]
-        # print "poi coord : ", poi_coords_lst
-        kmeans = KMeans(n_clusters=available_days).fit(poi_coords_lst)
-        day_labels = kmeans.labels_
-        day_order = helpers.kmeans_leabels_day_order(day_labels)
-        # print day_labels, day_order
+        if available_days > 0:
+            city_poi_coords_lst = np.array(city_poi_list_info)[:,1:3]
+            kmeans = KMeans(n_clusters=available_days).fit(city_poi_coords_lst)
+            city_day_labels = kmeans.labels_
+            city_day_order = helpers.kmeans_leabels_day_order(city_day_labels)
+        if available_surr_days > 0:
+            city_surr_poi_coords_lst = np.array(city_surr_poi_list_info)[:,1:3]
+            kmeans = KMeans(n_clusters=available_surr_days).fit(city_surr_poi_coords_lst)
+            city_surr_day_labels = kmeans.labels_
+            city_surr_day_order = helpers.kmeans_leabels_day_order(city_surr_day_labels)
+        poi_list_info = city_poi_list_info + city_surr_poi_list_info 
+        day_labels = city_day_labels + [surr_label+available_days for surr_label in city_surr_day_labels]
+        day_order = city_day_order + [order+available_days for order in city_surr_day_order]
+        total_avaialble_days = available_days+available_surr_days
         not_visited_poi_lst = []
 
-        for i,v in enumerate(day_order):
-            day_trip_id = '-'.join([str(state).upper().replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(available_days),str(i)])
-            big_ix, med_ix,small_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
-
-            event_ids, event_type = helpers.create_event_id_list(big_ix, med_ix, small_ix)
-            event_ids, event_type = helpers.db_event_cloest_distance(event_ids = event_ids, event_type = event_type, city_name = city)
-            event_ids, driving_time_list, walking_time_list = helpers.db_google_driving_walking_time(event_ids, event_type)
-            event_ids, driving_time_list, walking_time_list, total_time_spent, not_visited_poi_lst = \
-                helpers.db_adjust_events(event_ids, driving_time_list, walking_time_list, not_visited_poi_lst, event_type, city)
-            details = helpers.db_city_day_trip_details(event_ids, i, city, state)
-
-
-            event_ids = event_ids.tolist()
+        for i, v in enumerate(day_order):
+            day_trip_id, event_ids, event_type, details, not_visited_poi_lst = create_day_trip(day_labels, city_poi_list_info, city, state, regular, total_available_days, i, v, not_visited_poi_lst)
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('SELECT max(index) FROM day_trip_table_city;')
@@ -189,15 +199,12 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
             index = max_index + 1
             print day_trip_id
             if helpers.check_day_trip_id_city(day_trip_id):
-                cur.execute("SELECT index FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
+                cur.execute("SELECT index FROM day_trip_table_city WHERE trip_locations_id = %s;", (day_trip_id))
                 cur = conn.cursor()                     
                 index = cur.fetchone()[0]
-                cur.execute("DELETE FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (day_trip_id))
+                cur.execute("DELETE FROM day_trip_table_city WHERE trip_locations_id = %s;", (day_trip_id))
                 conn.commit()
-
             cur.execute("INSERT INTO day_trip_table_city (index, trip_locations_id, full_day, regular, city, state, details, event_type, event_ids) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s);",(index, day_trip_id, full_day, regular, city, state, json.dumps(details), event_type, json.dumps(event_ids)))
-
-
             conn.commit()
             conn.close()
             trip_location_ids.append(day_trip_id)
