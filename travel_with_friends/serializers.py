@@ -38,6 +38,10 @@ class FullTripAddEventSerializer(serializers.Serializer):
     trip_location_id = serializers.CharField()
     full_trip_id = serializers.CharField()
 
+class FullTripAutoAddEventSerializer(serializers.Serializer):
+    trip_location_id = serializers.CharField()
+    full_trip_id = serializers.CharField()
+
 class OutsideTripAddSearchSerializer(serializers.Serializer):
     outside_trip_id = serializers.CharField()
     poi_name = serializers.CharField(allow_blank=True)

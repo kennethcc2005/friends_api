@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer, OutsideTripAddSearchSerializer
+        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -258,6 +258,33 @@ class FullTripAddEvent(APIView):
         full_trip_id=data["full_trip_id"]
         poi_name = data["poi_name"]
         poi_id = data["poi_id"] if data["poi_id"] != 'undefined' else None
+        trip_location_id = data["trip_location_id"]
+        old_trip_location_id,new_trip_location_id, new_day_details = trip_update.add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
+        full_trip_id, trip_location_ids, full_trip_details = trip_update.add_event_full_trip(full_trip_id, old_trip_location_id, new_trip_location_id, new_day_details)
+        return Response({
+            "full_trip_details": full_trip_details,
+            "full_trip_id": full_trip_id,
+            "trip_location_ids": trip_location_ids,
+            "current_trip_location_id": new_trip_location_id,
+        })
+
+
+class FullTripAutoAddEvent(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+        # return (AllowAny() if self.request.method == 'POST'
+        #         else permissions.IsAuthenticated()),
+    def get(self, request):
+        # Validate the incoming input (provided through query parameters)
+        
+        serializer = FullTripAutoAddEventSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        # Get the model input
+        data = serializer.validated_data
+        full_trip_id=data["full_trip_id"]
         trip_location_id = data["trip_location_id"]
         old_trip_location_id,new_trip_location_id, new_day_details = trip_update.add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
         full_trip_id, trip_location_ids, full_trip_details = trip_update.add_event_full_trip(full_trip_id, old_trip_location_id, new_trip_location_id, new_day_details)
