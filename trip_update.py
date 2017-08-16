@@ -293,7 +293,7 @@ def auto_add_event_id_lst(full_trip_id,time_limit=60):
     city, state, details = cur.fetchone()
     details = json.loads(details)
     event_ids = [detail['id'] for detail in details]
-    cur.execute("SELECT index, name, adjusted_visit_length FROM poi_detail_table WHERE index NOT IN {0} AND city='{1}' AND state='{2}' ORDER BY num_reviews DESC LIMIT {3};".format(str(tuple(event_ids)), city.title(), state.title(), 4))
+    cur.execute("SELECT index, name, adjusted_visit_length, num_reviews FROM poi_detail_table WHERE index NOT IN {0} AND city='{1}' AND state='{2}' AND adjusted_visit_length <= 60 ORDER BY num_reviews DESC LIMIT {3};".format(str(tuple(event_ids)), city.title(), state.title(), 4))
     results = cur.fetchall()
 
     conn.close()
