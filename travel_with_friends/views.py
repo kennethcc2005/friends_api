@@ -286,14 +286,12 @@ class FullTripAutoAddEvent(APIView):
         data = serializer.validated_data
         full_trip_id=data["full_trip_id"]
         trip_location_id = data["trip_location_id"]
-        old_trip_location_id,new_trip_location_id, new_day_details = trip_update.add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
-        full_trip_id, trip_location_ids, full_trip_details = trip_update.add_event_full_trip(full_trip_id, old_trip_location_id, new_trip_location_id, new_day_details)
-        print 'submit your add event :)', full_trip_id, trip_location_ids, full_trip_details
+        full_trip_id, trip_location_ids, full_trip_details,trip_location_id = trip_update.auto_add_events_full_trip(trip_location_id, full_trip_id)
         return Response({
             "full_trip_details": full_trip_details,
             "full_trip_id": full_trip_id,
             "trip_location_ids": trip_location_ids,
-            "current_trip_location_id": new_trip_location_id,
+            "current_trip_location_id": trip_location_id,
         })
 
 class FullTripSuggestArray(APIView):
