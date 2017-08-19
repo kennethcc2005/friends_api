@@ -184,14 +184,20 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
             kmeans = KMeans(n_clusters=available_surr_days).fit(city_surr_poi_coords_lst)
             city_surr_day_labels = kmeans.labels_
             city_surr_day_order = helpers.kmeans_leabels_day_order(city_surr_day_labels)
-        poi_list_info = city_poi_list_info + city_surr_poi_list_info 
-        day_labels = city_day_labels + [surr_label+available_days for surr_label in city_surr_day_labels]
-        day_order = city_day_order + [order+available_days for order in city_surr_day_order]
-        total_avaialble_days = available_days+available_surr_days
+            poi_list_info = city_poi_list_info + city_surr_poi_list_info 
+            day_labels = city_day_labels + [surr_label+available_days for surr_label in city_surr_day_labels]
+            day_order = city_day_order + [order+available_days for order in city_surr_day_order]
+            total_available_days = available_days+available_surr_days
+        else:
+            poi_list_info = city_poi_list_info
+            day_labels = city_day_labels 
+            day_order = city_day_order 
+            total_available_days = available_days
         not_visited_poi_lst = []
 
         for i, v in enumerate(day_order):
             day_trip_id, event_ids, event_type, details, not_visited_poi_lst = create_day_trip(day_labels, city_poi_list_info, city, state, regular, total_available_days, i, v, not_visited_poi_lst)
+                                                          
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('SELECT max(index) FROM day_trip_table_city;')
