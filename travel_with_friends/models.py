@@ -38,6 +38,34 @@ create table city_state_coords_table as select a.*, b.state_abb
 update city_state_coords_table set state_abb = 'DC' where state_abb is null;
 delete from county_table where city = 'San Francisco' and county = 'SAN MATEO';
 DELETE 1;
+
+CREATE TABLE nightlife_table (
+    id     integer PRIMARY KEY,
+    name    varchar(100),
+    city varchar(40),
+    state varchar(40),
+    bsns_id varchar(100),
+    bsns_detail TEXT
+);
+
+
+ALTER TABLE poi_detail_table ADD PRIMARY KEY (index);
+
+CREATE TABLE yelp_poi_table (
+    id     integer PRIMARY KEY,
+    yelp_name    varchar(100),
+    city varchar(40),
+    state varchar(40),
+    poi_index bigint REFERENCES poi_detail_table(index), poi_name varchar(100), similar_ratio real, 
+    yelp_detail TEXT,
+    yelp_id varchar(100),
+    google_place_id       varchar(100),
+    google_name           varchar(100), 
+    google_detail         text,                   
+    google_similar_ratio  real                   
+);
+
+
 '''
 
 from __future__ import unicode_literals

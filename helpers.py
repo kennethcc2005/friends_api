@@ -76,7 +76,10 @@ def create_big_med_small_lst(day_labels, city_poi_list_info, v):
     city_poi_list_info = np.array(city_poi_list_info)
     for ix, label in enumerate(day_labels):
         if label == v:
+<<<<<<< HEAD
             
+=======
+>>>>>>> 87302764d58a493e628bf727742ffdd7ff8e534d
             time = float(city_poi_list_info[ix,3])
             if time > 180 :
                 big_ix.append(ix)
@@ -139,7 +142,7 @@ def db_start_city_poi(city, state):
     conn.close()
     return a
 
-def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
+def db_city_and_surrounding_poi(city, state, need_days, num_poi_per_day):
     '''
     Get array of city and surrouding cities related POIs.
     '''
@@ -149,14 +152,15 @@ def db_city_and_surrounding_poi(city, state, n_days, num_poi_per_day):
     coord_lat, coord_long = cur.fetchone()
 
     for radius in [10,20,25,30,35]:
-        cur.execute("SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true AND ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius))
+        query = "SELECT index, coord_lat, coord_long, adjusted_visit_length, ranking, review_score, num_reviews, city, state FROM poi_detail_table WHERE interesting = true AND (city != '{3}' OR state != '{4}') AND ST_Distance_Sphere(geom, ST_MakePoint({0},{1})) <= {2} * 1609.34;".format(coord_long,coord_lat,radius, city, state)
+        cur.execute(query)
         all_points = cur.fetchall()
-        available_days = len(all_points)/num_poi_per_day
+        available_surr_days = len(all_points)/num_poi_per_day
+        conn.close()
         if all_points:
-            if available_days >= n_days:
-                conn.close()
-                return all_points, n_days
-    return all_points, available_days
+            if available_surr_days >= need_days:
+                return all_points, need_days
+    return all_points, available_surr_days
 
 def get_event_ids_list(trip_locations_id):
     '''
@@ -655,13 +659,18 @@ def serach_city_state(city_state):
         city = city_state.split(',')[0].strip()
         state = city_state.split(',')[1].strip()
         # cur.execute("SELECT city, state_abb FROM city_state_coords_table WHERE city % '{0}' AND (state % '{1}' or state_abb % '{1}') order by similarity(city, '{0}') desc limit 5;".format(city,state))
-        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text) FROM (select distinct city, state_abb, state FROM poi_detail_table) AS temp WHERE temp.city % '{0}' AND (temp.state % '{1}' OR temp.state_abb % '{1}') ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city, state))
+        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text), similarity(temp.city, '{0}') FROM (select distinct city, state_abb, state FROM poi_detail_table) AS temp WHERE temp.city % '{0}' AND (temp.state % '{1}' OR temp.state_abb % '{1}') ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city, state))
     else:
         city = city_state.strip()
         # cur.execute("SELECT city, state_abb, concat_ws(', ',city::text, state_abb::text) FROM city_state_coords_table WHERE city % '{0}' order by similarity(city, '{0}') desc limit 5;".format(city))
-        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text) FROM (select distinct city, state_abb FROM poi_detail_table) AS temp WHERE temp.city % '{0}' ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city))
+        cur.execute("SELECT temp.city, temp.state_abb, concat_ws(', ',temp.city::text, temp.state_abb::text), similarity(temp.city, '{0}') FROM (select distinct city, state_abb FROM poi_detail_table) AS temp WHERE temp.city % '{0}' ORDER BY similarity(temp.city, '{0}') DESC LIMIT 5;".format(city))
     c = cur.fetchall()
     conn.close()
+    if bool(c):
+        if len(c) == 1:
+            return c
+        if c[0][3] == 1 and c[1][3] != 1:
+            return [c[0]]
     return c
 
 

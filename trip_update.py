@@ -219,10 +219,8 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
     (trip_location_ids, full_trip_details, city, state, n_days) = cur.fetchone()
     event_ids = json.loads(event_ids)
     event_ids = map(int, event_ids)
-    print event_ids
     day_details = json.loads(day_details)
     if not poi_id:
-        print 'type event_ids', type(event_ids), type(poi_name),str(poi_name).replace(' ','-').replace("'",''), '-'.join(map(str,event_ids))
         new_trip_location_id = '-'.join(map(str,event_ids))+'-'+str(poi_name).replace(' ','-').replace("'",'')
         cur.execute("select details from day_trip_table_city where trip_locations_id='%s'" %(new_trip_location_id))
         a = cur.fetchone()
@@ -250,18 +248,15 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             conn.close()
             return trip_locations_id, new_trip_location_id, day_detail
     else:
+        event_ids, event_type = db_event_cloest_distance(trip_locations_id=trip_locations_id, new_event_id=poi_id)
+        event_ids=event_ids.tolist()
+        event_ids=map(float, event_ids)
+        event_ids, driving_time_list, walking_time_list = db_google_driving_walking_time(event_ids,event_type = 'add')
         if trip_locations_id.isupper() or trip_locations_id.islower():
             new_trip_location_id = '-'.join(map(str,event_ids))+'-'+str(poi_id)
         else:
-            # db_event_cloest_distance(trip_locations_id=None,event_ids=None, event_type = 'add',new_event_id = None, city_name =None)
-            print 'add: ', trip_locations_id, poi_id
-            event_ids, event_type = db_event_cloest_distance(trip_locations_id=trip_locations_id, new_event_id=poi_id)
-            event_ids=event_ids.tolist()
-            event_ids=map(float, event_ids)
-            print event_ids, type(event_ids)
-            event_ids, driving_time_list, walking_time_list = db_google_driving_walking_time(event_ids,event_type = 'add')
             new_trip_location_id = '-'.join(map(str,event_ids))
-            event_ids = map(int,list(event_ids))
+        event_ids = map(int,list(event_ids))
         cur.execute("select details from day_trip_table_city where trip_locations_id='%s'" %(new_trip_location_id)) 
         a = cur.fetchone()
         if not a:
@@ -291,6 +286,42 @@ def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_d
             else:
                 return trip_locations_id, new_trip_location_id, a[0]
 
+def auto_add_event_id_lst(full_trip_id,time_limit=60):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT city, state,  details FROM full_trip_table_city WHERE full_trip_id  = '%s' LIMIT 1;" %(full_trip_id))  
+    city, state, details = cur.fetchone()
+    details = json.loads(details)
+    event_ids = [detail['id'] for detail in details]
+    cur.execute("SELECT index, name, adjusted_visit_length, num_reviews FROM poi_detail_table WHERE index NOT IN {0} AND city='{1}' AND state='{2}' AND adjusted_visit_length <= 60 ORDER BY num_reviews DESC LIMIT {3};".format(str(tuple(event_ids)), city.title(), state.title(), 4))
+    results = cur.fetchall()
+
+    conn.close()
+    total_time = 0
+    add_poi_id_lst = []
+    if len(results)==0:
+        return add_poi_id_lst
+    for result in results:
+        total_time += int(result[2])
+        add_poi_id_lst.append((result[0],result[1]))
+        if total_time>=time_limist:
+            return add_poi_id_lst
+    return add_poi_id_lst
+
+def auto_add_events_full_trip(trip_location_id,full_trip_id, time_limit=60):
+    add_poi_id_lst = auto_add_event_id_lst(full_trip_id,time_limit)
+    if len(add_poi_id_lst) != 0:
+        for (poi_id,poi_name) in add_poi_id_lst:
+            old_trip_location_id, trip_location_id, new_day_details = add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
+            full_trip_id, trip_location_ids, full_trip_details = add_event_full_trip(full_trip_id, old_trip_location_id, trip_location_id, new_day_details)
+        return full_trip_id, trip_location_ids, full_trip_details, trip_location_id
+    else:
+        conn = psycopg2.connect(conn_str)
+        cur = conn.cursor()
+        cur.execute("SELECT trip_location_ids,details FROM full_trip_table_city WHERE full_trip_id  = '%s' LIMIT 1;" %(full_trip_id))  
+        trip_location_ids, details = cur.fetchone()
+        return full_trip_id, json.loads(trip_location_ids), json.loads(details),trip_location_id
+        
 def add_event_route_trip(poi_id, poi_name, outside_route_id, outside_trip_id, full_day = True, unseen_event = False, username_id=1):
     #day number is sth to remind! need to create better details maybe
     conn = psycopg2.connect(conn_str)   
