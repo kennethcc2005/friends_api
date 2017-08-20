@@ -77,7 +77,7 @@ def create_big_med_small_lst(day_labels, city_poi_list_info, v):
     for ix, label in enumerate(day_labels):
         if label == v:
             
-            time = city_poi_list_info[ix,3]
+            time = float(city_poi_list_info[ix,3])
             if time > 180 :
                 big_ix.append(ix)
             elif time >= 120 :
@@ -305,7 +305,7 @@ def check_day_trip_id_city(day_trip_id):
         return True
     else:
         return False
-        
+
 def check_travel_time_id(new_id):
     '''
     Check google driving time exisit or not for the 2 point poi id.
