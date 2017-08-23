@@ -8,100 +8,109 @@ import re
 from helpers import *
 import os
 
-def add_event_day_trip(poi_id, poi_name, trip_locations_id, full_trip_id, full_day = True, unseen_event = False, username_id=1):
-    #day number is sth to remind! need to create better details maybe
-    #
-    #click buttom
-    #
-    #
+def remove_event(full_trip_id, trip_locations_id, remove_event_id, username_id=1, remove_event_name=None, event_day=None, full_day = True):
+    #may have some bugs if trip_locations_id != remove_event_id as last one:)   test and need to fix
+    print 'init:', full_trip_id, trip_locations_id, remove_event_id
     conn = psycopg2.connect(conn_str)   
     cur = conn.cursor()
-    username_id = 1   
-    cur.execute("select full_day, event_ids, details from day_trip_table_city where trip_locations_id='%s'" %(trip_locations_id))  
-    (full_day, event_ids, day_details) = cur.fetchone()
-    cur.execute("select trip_location_ids, details, city, state, n_days from full_trip_table_city where full_trip_id='%s'" %(full_trip_id))  
-    (trip_location_ids, full_trip_details, city, state, n_days) = cur.fetchone()
-    event_ids = json.loads(event_ids)
-    event_ids = map(int, event_ids)
-    print event_ids
-    day_details = json.loads(day_details)
-    if not poi_id:
-        print 'type event_ids', type(event_ids), type(poi_name),str(poi_name).replace(' ','-').replace("'",''), '-'.join(map(str,event_ids))
-        new_trip_location_id = '-'.join(map(str,event_ids))+'-'+str(poi_name).replace(' ','-').replace("'",'')
-        cur.execute("select details from day_trip_table_city where trip_locations_id='%s'" %(new_trip_location_id))
-        a = cur.fetchone()
-        if bool(a):
+
+    if trip_locations_id == remove_event_id:
+        if full_trip_id != trip_locations_id:
+            # full_trip_id = full_trip_id[len(str(trip_locations_id))+1:]
+            cur.execute("select trip_location_ids from full_trip_table_city where full_trip_id = '%s';" %(full_trip_id)) 
+            # cur.execute("select trip_location_ids, details from full_trip_table where full_trip_id = '%s';" %(full_trip_id)) 
+            trip_location_ids = cur.fetchone()[0]
+            trip_location_ids = ast.literal_eval(trip_location_ids)
+            trip_location_ids.remove(str(trip_locations_id))
+            full_trip_details = []
+            for trip_id in trip_location_ids:
+                cur.execute("select details from day_trip_table_city where trip_locations_id = '%s';" %(trip_id)) 
+                details = cur.fetchone()[0]
+                trip_details = ast.literal_eval(details)
+                full_trip_details.extend(trip_details)
             conn.close()
-            details = ast.literal_eval(a[0])
-            return trip_locations_id, new_trip_location_id, details
+            new_full_trip_id = '-'.join(trip_location_ids)
+            for index, detail in enumerate(full_trip_details):
+                full_trip_details[index] = ast.literal_eval(detail)
+                full_trip_details[index]['address'] = full_trip_details[index]['address'].strip(', ').replace(', ,',',')
+            print full_trip_details, new_full_trip_id, trip_location_ids
+            return new_full_trip_id, full_trip_details, trip_location_ids
+        return '','',''
+    
+    print 'remove id: ', trip_locations_id
+    cur.execute("select * from day_trip_table_city where trip_locations_id='%s'" %(trip_locations_id)) 
+    (index, trip_locations_id, full_day, regular, county, state, detail, event_type, event_ids) = cur.fetchone()
+
+    new_event_ids = json.loads(event_ids)
+    remove_event_id = int(remove_event_id)
+    new_event_ids.remove(remove_event_id)
+    new_trip_locations_id = '-'.join(str(event_id) for event_id in new_event_ids)
+    # if check_id:
+    #     return new_trip_locations_id, check_id[-3]
+    detail = ast.literal_eval(detail[1:-1])
+    for index, trip_detail in enumerate(detail):
+        if type(trip_detail) == str:
+            if ast.literal_eval(trip_detail)['id'] == remove_event_id:
+                remove_index = index
+                break
         else:
-            cur.execute("select max(index) from day_trip_table_city;")
-            new_index = cur.fetchone()[0]+1
-            #need to make sure the type is correct for detail!
-            day = day_details[-1]['day']
-            new_event_detail = {"name": poi_name, "day": day, "coord_lat": "None", "coord_long": "None","address": "None", "id": "None", "city": "", "state": ""}
-            for index, detail in enumerate(day_details):
-                if type(detail) == str:
-                    day_details[index] = ast.literal_eval(detail)
-            day_details.append(new_event_detail)
-            #get the right format of detail: change from list to string and remove brackets and convert quote type
-            day_detail = str(day_details).replace("'","''")
-            event_ids.append(poi_name)
-            event_ids = str(event_ids).replace("'","''")
-            cur.execute("INSERT INTO day_trip_table_city VALUES (%i, '%s',%s,%s,'%s','%s','%s','%s','%s');" %(new_index, new_trip_location_id, full_day, False, county, state, day_detail,'add',event_ids))
-            
-            conn.commit()
-            conn.close()
-            return trip_locations_id, new_trip_location_id, day_detail
-    else:
-        if trip_locations_id.isupper() or trip_locations_id.islower():
-            new_trip_location_id = '-'.join(map(str,event_ids))+'-'+str(poi_id)
-        else:
-            # db_event_cloest_distance(trip_locations_id=None,event_ids=None, event_type = 'add',new_event_id = None, city_name =None)
-            print 'add: ', trip_locations_id, poi_id
-            event_ids, event_type = db_event_cloest_distance(trip_locations_id=trip_locations_id, new_event_id=poi_id)
-            event_ids=event_ids.tolist()
-            event_ids=map(float, event_ids)
-            print event_ids, type(event_ids)
-            event_ids, driving_time_list, walking_time_list = db_google_driving_walking_time(event_ids,event_type = 'add')
-            new_trip_location_id = '-'.join(map(str,event_ids))
-            event_ids = map(int,list(event_ids))
-        cur.execute("select details from day_trip_table_city where trip_locations_id='%s'" %(new_trip_location_id)) 
-        a = cur.fetchone()
-        if not a:
-            details = []
-            if type(day_details[0]) == dict:
-                event_day = day_details[0]['day']
-            else:
-                event_day = ast.literal_eval(day_details[0])['day']
-            for item in event_ids:
-                cur.execute("select index, name, address, coord_lat, coord_long, city, state, icon_url, check_full_address, poi_type, adjusted_visit_length, img_url from poi_detail_table where index = '%s';" %(item))
-                a = cur.fetchone()
-                detail = {'id': a[0],'name': a[1],'address': a[2], 'day': event_day, 'coord_lat': a[3], 'coord_long': a[4], 'city': a[5], 'state': a[6], 'icon_url': a[7], 'check_full_address': a[8], 'poi_type': a[9], 'adjusted_visit_length': a[10], 'img_url': a[11]}
-                details.append(detail)
-            #need to make sure event detail can append to table!
-            cur.execute("select max(index) from day_trip_table_city;")
-            new_index = cur.fetchone()[0] +1
-            event_type = 'add'
-            cur.execute("insert into day_trip_table_city (index, trip_locations_id,full_day, regular, city, state, details, event_type, event_ids) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)" ,(new_index, new_trip_location_id, full_day, False, city, state, json.dumps(details), event_type, json.dumps(event_ids)))
-            conn.commit()
-            conn.close()
-            return trip_locations_id, new_trip_location_id, details
-        else:
-            conn.close()
-            #need to make sure type is correct.
-            if type(a[0]) == str:
-                return trip_locations_id, new_trip_location_id, ast.literal_eval(a[0])
-            else:
-                return trip_locations_id, new_trip_location_id, a[0]
+            if trip_detail['id'] == remove_event_id:
+                remove_index = index
+                break
+
+    new_detail = list(detail)
+    new_detail.pop(remove_index)
+    new_detail =  str(new_detail).replace("'","''")
+    regular = False
+    cur.execute("select * from day_trip_table_city where trip_locations_id='%s'" %(new_trip_locations_id))  
+    check_id = cur.fetchone()
+    if not check_id:
+        cur.execute("select max(index) from day_trip_table_city;")
+        new_index = cur.fetchone()[0]
+        new_index+=1
+        cur.execute("INSERT INTO day_trip_table_city VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s);" ,(new_index, new_trip_locations_id, full_day, regular, city, state, new_detail, event_type, new_event_ids))  
+        conn.commit()
+    conn.close()
+    new_full_trip_id, new_full_trip_details,new_trip_location_ids = new_full_trip_afer_remove_event(full_trip_id, trip_locations_id, new_trip_locations_id, username_id=1)
+    print 'delete trip details: ', new_full_trip_details
+    return new_full_trip_id, new_full_trip_details,new_trip_location_ids, new_trip_locations_id
+
+def new_full_trip_afer_remove_event(full_trip_id, old_trip_locations_id, new_trip_locations_id, username_id=1):
+    conn = psycopg2.connect(conn_str)   
+    cur = conn.cursor() 
+    username_id = 1
+    cur.execute("SELECT trip_location_ids, regular, city, state, details, n_days FROM full_trip_table_city WHERE full_trip_id = '{}' LIMIT 1;".format(full_trip_id))
+    trip_location_ids, regular, county, state, details, n_days = cur.fetchone()
+    trip_location_ids = ast.literal_eval(trip_location_ids)
+    trip_location_ids[:] = [new_trip_locations_id if x==old_trip_locations_id else x for x in trip_location_ids]
+    new_full_trip_id = '-'.join(trip_location_ids)
+    new_full_trip_details = []
+    for trip_locations_id in trip_location_ids:
+        cur.execute("SELECT details FROM day_trip_table_city WHERE trip_locations_id = '{}' LIMIT 1;".format(trip_locations_id))
+        detail = cur.fetchone()[0]
+        # print detail, type(detail)
+        detail = json.loads(detail)
+        # print detail, type(detail)
+        # detail[:] = [ast.literal_eval(x) if type(x) == str else x for x in detail]
+        new_full_trip_details.extend(detail)
+    regular=False
+    if not check_full_trip_id(new_full_trip_id):
+        cur.execute("SELECT max(index) FROM full_trip_table_city;")
+        full_trip_index = cur.fetchone()[0] + 1
+        cur.execute("INSERT INTO full_trip_table_city (index, username_id, full_trip_id,trip_location_ids, regular, city, state, details, n_days) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);" ,(full_trip_index, username_id, new_full_trip_id, json.dumps(trip_location_ids), regular, ciy, state, json.dumps(new_full_trip_details), n_days))
+        conn.commit()
+    conn.close()
+    return new_full_trip_id, new_full_trip_details,trip_location_ids
 
 if __name__ == '__main__':
-    poi_id="356"
-    poi_name="Golden Gate Park"
-    full_trip_id="352.0-371.0-376.0-366-357.0-364"
-    trip_location_id="352.0-371.0-376.0-366-357.0-364"
-
-    a, b, c = add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
+    # poi_id="356"
+    # poi_name="Golden Gate Park"
+    # full_trip_id="352.0-371.0-376.0-366-357.0-364"
+    # trip_location_id="352.0-371.0-376.0-366-357.0-364"
+    full_trip_id="CALIFORNIA-SAN-FRANCISCO-1-2-0-352.0-371.0-356.0-361.0-363.0-359.0-375.0-364.0"
+    event_id="364"
+    trip_locations_id="352.0-371.0-356.0-361.0-363.0-359.0-375.0-364.0"
+    a, b, c = remove_event(full_trip_id, trip_locations_id, event_id)
     print a, b, c
     # print result
 

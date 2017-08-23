@@ -305,7 +305,7 @@ def check_day_trip_id_city(day_trip_id):
         return True
     else:
         return False
-        
+
 def check_travel_time_id(new_id):
     '''
     Check google driving time exisit or not for the 2 point poi id.
