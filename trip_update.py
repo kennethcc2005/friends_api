@@ -304,7 +304,7 @@ def auto_add_event_id_lst(full_trip_id,time_limit=60):
     for result in results:
         total_time += int(result[2])
         add_poi_id_lst.append((result[0],result[1]))
-        if total_time>=time_limist:
+        if total_time>=time_limit:
             return add_poi_id_lst
     return add_poi_id_lst
 
