@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer
+        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
+        FullTripSuggestPopSearchSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -208,7 +209,6 @@ class FullTripDeleteEvent(APIView):
         trip_location_id = data["trip_location_id"]
         username_id = 1
         new_full_trip_id, new_full_trip_details, new_trip_location_ids, current_trip_location_id = trip_update.remove_event(full_trip_id, trip_location_id, event_id, username_id)
-        print 'trip details after delete event: ', new_full_trip_id, new_full_trip_details, new_trip_location_ids, current_trip_location_id
         return Response({
             "full_trip_id": new_full_trip_id,
             "full_trip_details": new_full_trip_details,
@@ -234,11 +234,31 @@ class FullTripAddSearch(APIView):
         poi_name = data["poi_name"]
         trip_location_id = data["trip_location_id"]
         poi_dict, poi_names = trip_update.add_search_event(poi_name, trip_location_id)
-        print 'welcome to add your search :)', poi_names, poi_dict
         return Response({
             "poi_dict": poi_dict,
             "poi_names": poi_names,
         })
+
+class FullTripSuggestPopSearch(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+        # return (AllowAny() if self.request.method == 'POST'
+        #         else permissions.IsAuthenticated()),
+    def get(self, request):
+        # Validate the incoming input (provided through query parameters)
+        serializer = FullTripSuggestPopSearchSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        # Get the model input
+        data = serializer.validated_data
+        trip_location_id = data["trip_location_id"]
+        poi_dict_list = trip_update.suggest_search_pop_events(trip_location_id)
+        return Response({
+            "poi_dict_list": poi_dict_list
+        })
+
 
 class FullTripAddEvent(APIView):
     # def get_permissions(self):
@@ -336,12 +356,9 @@ class FullTripSuggestConfirm(APIView):
         # serializer.is_valid(raise_exception=True)
         # Get the model input
         data = request.data
-        print data, 'bug??'
         full_trip_id=data["fullTripId"]
         update_suggest_event = data["updateSuggestEvent"]
         update_trip_location_id = data["updateTripLocationId"]
-        print full_trip_id,update_trip_location_id
-        print 'my boi: ', update_suggest_event, type(update_suggest_event)
         username_id = 1
 
         new_full_trip_id, new_full_trip_details, full_trip_trip_locations_id, new_update_trip_location_id = trip_update.switch_suggest_event(full_trip_id, update_trip_location_id, update_suggest_event, username_id)
@@ -393,7 +410,6 @@ class OutsideTripAddSearch(APIView):
         # poi_dict, poi_names = trip_update.outside_add_search_event(poi_name, outside_route_id)
         poi_names, poi_dict = trip_update.outside_add_search_event(poi_name, outside_route_id)
 
-        print 'welcome to add your search :)', poi_names, poi_dict
         return Response({
             "poi_dict": poi_dict,
             "poi_names": poi_names,
@@ -420,7 +436,6 @@ class OutsideTripAddEvent(APIView):
         trip_location_id = data["trip_location_id"]
         old_trip_location_id,new_trip_location_id, new_day_details = trip_update.add_event_day_trip(poi_id, poi_name, trip_location_id, full_trip_id)
         full_trip_id, trip_location_ids, full_trip_details = trip_update.add_event_full_trip(full_trip_id, old_trip_location_id, new_trip_location_id, new_day_details)
-        print 'submit your add event :)', full_trip_id, trip_location_ids, full_trip_details
         return Response({
             "full_trip_details": full_trip_details,
             "full_trip_id": full_trip_id,
@@ -428,7 +443,26 @@ class OutsideTripAddEvent(APIView):
             "current_trip_location_id": new_trip_location_id,
         })
 
-
+class NightlifeCitySearch(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+    def post(self, request):
+        data = request.data
+        city = data['city']
+        state = data['state']
+        hotel_address=data["hotelAddress"]
+        full_trip_id = data["fullTripId"]
+        username_id = 1
+        # username = request.user.username
+        # username_id = User.objects.get(username=username).pk
+        night_life_events_details, night_life_events_ids = night_trip.nightlife_city_search(hotel_address, city, state,full_trip_id)
+        return Response({
+            "night_life_events_details": night_life_events_details,
+            "night_life_events_ids": night_life_events_ids
+        })
 
 
 
@@ -445,12 +479,10 @@ class IPGeoLocation(APIView):
         # serializer = FullTripSuggestConfirmSerializer(data=request.data)
         # serializer.is_valid(raise_exception=True)
         # Get the model input
-        print 'ok?'
         serializer = IPGeoLocationSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         # Get the model input
         data = serializer.validated_data
-        print 'ip data: ', data, data['ip']
         country_code, country_name, region_name, city_name = find_ip_geo_location(data['ip'])
         return Response({
             "country_code": country_code,

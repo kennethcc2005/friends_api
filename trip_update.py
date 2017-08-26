@@ -53,6 +53,37 @@ def convert_event_ids_to_lst(event_ids):
 #     poi_names = [d[1] for d in results]
 #     conn.close()
 #     return poi_dict, poi_names
+
+def suggest_search_pop_events(trip_location_id):
+    '''
+    input: trip_location_id from day_trip_table
+    output: 7 items of items.
+    '''
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT city, state, event_ids FROM day_trip_table_city WHERE trip_locations_id  = '%s' LIMIT 1;" %(trip_location_id))  
+    city, state, event_ids = cur.fetchone()
+    event_ids = json.loads(event_ids)
+    cur.execute("SELECT index, name, address, adjusted_visit_length, city, state, coord_lat, coord_long, poi_type, img_url FROM poi_detail_table WHERE index NOT IN %s AND city=%s AND state=%s ORDER BY num_reviews DESC LIMIT 7;", (tuple(event_ids), city.title(), state.title()))
+    results = cur.fetchall()
+    poi_dict_list = []
+    for index, name, address, adjusted_visit_length, city, state, coord_lat, coord_long, poi_type, img_url in results:
+        poi_dict = {'event_id': index,
+                    'name': name,
+                    'address': address,
+                    'adjusted_visit_length': adjusted_visit_length,
+                    'city': city,
+                    'state': state,
+                    'coord_lat': coord_lat,
+                    'coord_long': coord_long,
+                    'poi_type': poi_type,
+                    'img_url': img_url
+                    }
+        poi_dict_list.append(poi_dict)
+    conn.close()
+    return poi_dict_list
+
+
 def add_search_event(poi_name, trip_location_id):
     '''
     input: name from poi_detail_table; trip_location_id from day_trip_table
