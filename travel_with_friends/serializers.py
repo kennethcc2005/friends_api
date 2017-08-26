@@ -32,6 +32,9 @@ class FullTripAddSearchSerializer(serializers.Serializer):
     poi_name = serializers.CharField(allow_blank=True)
     trip_location_id = serializers.CharField()
 
+class FullTripSuggestPopSearchSerializer(serializers.Serializer):
+    trip_location_id = serializers.CharField()
+
 class FullTripAddEventSerializer(serializers.Serializer):
     poi_id = serializers.CharField(allow_blank=True)
     poi_name = serializers.CharField(allow_blank=True)

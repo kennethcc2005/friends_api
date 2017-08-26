@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^update_trip/suggest_search/$', views.FullTripSuggestArray.as_view(), name='full_trip_suggest_search'), 
     url(r'^update_trip/suggest_confirm/$', views.FullTripSuggestConfirm.as_view(), name='full_trip_suggest_confirm'), 
     url(r'^update_trip/add_search/$', views.FullTripAddSearch.as_view(), name='full_trip_add_search'), 
+    url(r'^update_trip/suggest_pop_search/$', views.FullTripSuggestPopSearch.as_view(), name='full_trip_suggest_search'), 
     url(r'^update_trip/add/$', views.FullTripAddEvent.as_view(), name='full_trip_add_event'), 
     url(r'^update_trip/auto_add/$', views.FullTripAutoAddEvent.as_view(), name='full_trip_auto_add_event'), 
     url(r'^create_full_trip/$', views.FullTripCreate.as_view(), name='full_trip_create'), 

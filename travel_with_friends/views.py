@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer
+        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
+        FullTripSuggestPopSearchSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -237,6 +238,27 @@ class FullTripAddSearch(APIView):
             "poi_dict": poi_dict,
             "poi_names": poi_names,
         })
+
+class FullTripSuggestPopSearch(APIView):
+    # def get_permissions(self):
+    #     '''
+    #     response = requests.get(myurl, headers={'Authorization': 'Token {}'.format(mytoken)})
+    #     '''
+    #     return (permissions.IsAuthenticated()),
+        # return (AllowAny() if self.request.method == 'POST'
+        #         else permissions.IsAuthenticated()),
+    def get(self, request):
+        # Validate the incoming input (provided through query parameters)
+        serializer = FullTripSuggestPopSearchSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        # Get the model input
+        data = serializer.validated_data
+        trip_location_id = data["trip_location_id"]
+        poi_dict_list = trip_update.suggest_search_pop_events(trip_location_id)
+        return Response({
+            "poi_dict_list": poi_dict_list
+        })
+
 
 class FullTripAddEvent(APIView):
     # def get_permissions(self):
