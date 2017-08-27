@@ -485,10 +485,8 @@ Need to update db for last item delete..need to fix bugs if any
 '''
 def remove_event(full_trip_id, trip_locations_id, remove_event_id, username_id=1, remove_event_name=None, event_day=None, full_day = True):
     #may have some bugs if trip_locations_id != remove_event_id as last one:)   test and need to fix
-    print 'init:', full_trip_id, trip_locations_id, remove_event_id
     conn = psycopg2.connect(conn_str)   
     cur = conn.cursor()
-
     if trip_locations_id == remove_event_id:
         if full_trip_id != trip_locations_id:
             # full_trip_id = full_trip_id[len(str(trip_locations_id))+1:]
@@ -513,13 +511,12 @@ def remove_event(full_trip_id, trip_locations_id, remove_event_id, username_id=1
     
     cur.execute("select * from day_trip_table_city where trip_locations_id='%s'" %(trip_locations_id)) 
     (index, trip_locations_id, full_day, regular, city, state, detail, event_type, event_ids) = cur.fetchone()
-
     new_event_ids = json.loads(event_ids)
+    print 'new_event_ids ',new_event_ids, event_ids, trip_locations_id 
     remove_event_id = int(remove_event_id)
     new_event_ids.remove(remove_event_id)
     new_trip_locations_id = '-'.join(str(event_id) for event_id in new_event_ids)
-    # if check_id:
-    #     return new_trip_locations_id, check_id[-3]
+    print 'new id: ', new_trip_locations_id
     detail = json.loads(detail)
     # detail = ast.literal_eval(detail[1:-1])
     for index, trip_detail in enumerate(detail):

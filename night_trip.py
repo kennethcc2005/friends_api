@@ -19,33 +19,37 @@ def nightlife_city_search(address,city, state, full_trip_id):
     '''
     Get the default full trip data for each city(county)
     '''
+    print 'address:', address, city, state
     geolocator = Nominatim()
     location = geolocator.geocode(address)
     lat, lon = location.latitude, location.longitude
+    print 'lat, lon',lat, lon
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
-    cur.execute('SELECT avg(num_reviews)  FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3;',(lon,lat,lon,lat,5))
+    cur.execute('SELECT avg(num_reviews)  FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;',(lon,lat,5))
     good_num_reviews = cur.fetchone()[0]
-    good_nightlife = []
+    good_nightlife_events = []
+    nightlife_ids = []
     if good_num_reviews:
-        cur.execute('SELECT *, ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3 AND num_reviews>=%s;',(lon,lat,lon,lat,1,good_num_reviews))
+        cur.execute('SELECT id, name, city, state, lat, lon, img_url, open_hours_txt, address, ST_Distance_Sphere(geom, ST_MakePoint(%s,%s))/1609.34 FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3 AND num_reviews>=%s order by ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) LIMIT 7;',(lon,lat,lon,lat,5,good_num_reviews, lon,lat))
         details = cur.fetchall()
         if details:
-            good_nightlife.extend(details)
+            for nightlife_id, name, city, state, lat, lon, img_url, open_hours_txt, address, distance in details:
+                good_nightlife_events.append({
+                    "nightlife_id": nightlife_id,
+                    "name": name,
+                    "city": city,
+                    "state": state,
+                    "coord_lat": lat,
+                    "coord_long": lon,
+                    "img_url": img_url,
+                    "open_hours_txt": json.loads(open_hours_txt),
+                    "address": address,
+                    "distance": distance
+                    })
+                nightlife_ids.append(nightlife_id)
+            return good_nightlife_events, nightlife_ids
         else:
-            cur.execute('SELECT *, ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3 ORDER BY num_reviews desc limit 1;',(lon,lat,lon,lat,1))
-            detail=cur.fetchone()
-            if detail:
-                good_nightlife.append(detail)
-        if len(good_nightlife) < 7:
-            cur.execute('SELECT *, ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3 AND num_reviews>=%s;',(lon,lat,lon,lat,1,good_num_reviews))
-        details = cur.fetchall()
-        if details:
-            good_nightlife.extend(details)
-        else:
-            cur.execute('SELECT *, ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34 AND rating>=3 ORDER BY num_reviews desc limit 1;',(lon,lat,lon,lat,1))
-            detail=cur.fetchone()
-            if detail:
-                good_nightlife.append(detail)
-
-
+            return [],[]
+    else:
+        return [],[]

@@ -50,6 +50,21 @@ class OutsideTripAddSearchSerializer(serializers.Serializer):
     poi_name = serializers.CharField(allow_blank=True)
     outside_route_id = serializers.CharField()
 
+class NightlifeCitySearchSerializer(serializers.Serializer):
+    city = serializers.CharField()
+    state = serializers.CharField()
+    hotel_address= serializers.CharField()
+    full_trip_id = serializers.CharField()
+
+class AddSeasonalEventsSerializer(serializers.Serializer):
+    poi_name = serializers.CharField()
+    city= serializers.CharField()
+    state= serializers.CharField()
+    photo= serializers.CharField()
+    photo_source= serializers.CharField()
+    description= serializers.CharField()
+    season= serializers.CharField()
+    link= serializers.CharField()
 class IPGeoLocationSerializer(serializers.Serializer):
     ip = serializers.CharField()
 # class UserSerializer(serializers.ModelSerializer):

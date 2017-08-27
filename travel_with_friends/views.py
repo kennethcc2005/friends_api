@@ -8,7 +8,7 @@ from travel_with_friends.serializers import UserSerializer, FullTripSearchSerial
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
         IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
-        FullTripSuggestPopSearchSerializer
+        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, AddSeasonalEventsSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -26,6 +26,7 @@ from rest_framework.permissions import AllowAny
 # from django.contrib.auth import get_user_model # If used custom user model
 from django.views.decorators.csrf import csrf_exempt
 import trip_update
+import night_trip
 '''
 Get Token:
 http post http://127.0.0.1:8000/account/get_auth_token/ username=test password=test1234
@@ -451,19 +452,41 @@ class NightlifeCitySearch(APIView):
     #     return (permissions.IsAuthenticated()),
     def post(self, request):
         data = request.data
-        city = data['city']
-        state = data['state']
-        hotel_address=data["hotelAddress"]
-        full_trip_id = data["fullTripId"]
-        username_id = 1
-        # username = request.user.username
-        # username_id = User.objects.get(username=username).pk
-        night_life_events_details, night_life_events_ids = night_trip.nightlife_city_search(hotel_address, city, state,full_trip_id)
-        return Response({
-            "night_life_events_details": night_life_events_details,
-            "night_life_events_ids": night_life_events_ids
-        })
+        serializer = NightlifeCitySearchSerializer(data=data)
+        if serializer.is_valid():
+            city = data['city']
+            state = data['state']
+            hotel_address=data["hotel_address"]
+            full_trip_id = data["full_trip_id"]
+            username_id = 1
+            # username = request.user.username
+            # username_id = User.objects.get(username=username).pk
+            night_life_events_details, night_life_events_ids = night_trip.nightlife_city_search(hotel_address, city, state,full_trip_id)
+            return Response({
+                "night_life_events_details": night_life_events_details,
+                "night_life_events_ids": night_life_events_ids
+            })
+        else:
+            return Response({"error": serializer.errors}) 
 
+class AddSeasonalEvents(APIView):
+    def post(self, request):
+        data = request.data
+        serializer = AddSeasonalEventsSerializer(data=data)
+        if serializer.is_valid():
+            poi_name = data['poi_name']
+            city= data['city']
+            state= data['state']
+            photo= data['photo']
+            photo_source= data['photo_source']
+            description= data['description']
+            season= data['season']
+            link= data['link']
+            return Response({
+                "ok": poi_name + " inserted."
+            })
+        else:
+            return Response({"error": serializer.errors}) 
 
 
 

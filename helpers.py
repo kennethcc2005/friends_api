@@ -83,15 +83,7 @@ def create_big_med_small_lst(day_labels, city_poi_list_info, v):
                 med_ix.append(ix)
             else:
                 small_ix.append(ix)
-    # print big_ix, med_ix, small_ix
-     
-    
-    city_poi_list_info =  np.array(city_poi_list_info[:,:-2].astype(np.float).tolist())
-    # print city_poi_list_info, type(city_poi_list_info)
-    big_ = sorted_events(city_poi_list_info, big_ix)
-    med_ = sorted_events(city_poi_list_info, med_ix)
-    small_ = sorted_events(city_poi_list_info, small_ix)
-    return big_, med_, small_
+    return big_ix, med_ix, small_ix
 
 def find_county(state, city):
     '''
@@ -321,14 +313,17 @@ def check_travel_time_id(new_id):
         return False
 
 #May need to improve by adding #reviews in this. :)
-def sorted_events(info,ix):
+def sorted_events(info,ix ,old_ix):
     '''
     find the event_id, ranking AND review_score, num_reviews columns
     sorted base on ranking then review_score, num_reviews
     
     return sorted list 
     '''
+
     event_ = info[ix][:, [0, 4, 5, 6]]
+    if old_ix != []:
+        event_ = np.concatenate((event_, old_ix),axis=0)
     return np.array(sorted(event_, key=lambda x: (x[1], -x[3], -x[2])))
 
 #Need to make this more efficient
