@@ -76,10 +76,7 @@ def create_big_med_small_lst(day_labels, city_poi_list_info, v):
     city_poi_list_info = np.array(city_poi_list_info)
     for ix, label in enumerate(day_labels):
         if label == v:
-<<<<<<< HEAD
-            
-=======
->>>>>>> 87302764d58a493e628bf727742ffdd7ff8e534d
+
             time = float(city_poi_list_info[ix,3])
             if time > 180 :
                 big_ix.append(ix)

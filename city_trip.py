@@ -195,7 +195,6 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
             total_available_days = available_days
         not_visited_poi_lst = []
 
-# <<<<<<< HEAD
         for i,v in enumerate(day_order):
             day_trip_id = '-'.join([str(state).upper().replace(' ','-'), str(city.upper().replace(' ','-')),str(int(regular)), str(available_days),str(i)])
             big_ix, med_ix, small_ix = helpers.create_big_med_small_lst(day_labels, city_poi_list_info, v)
@@ -209,11 +208,9 @@ def get_city_trip_data(state, city, n_days, full_day=True, regular=True, visit_s
 
 
             event_ids = event_ids.tolist()
-# =======
         # for i, v in enumerate(day_order):
         #     day_trip_id, event_ids, event_type, details, not_visited_poi_lst = create_day_trip(day_labels, city_poi_list_info, city, state, regular, total_available_days, i, v, not_visited_poi_lst)
                                                           
-# >>>>>>> 87302764d58a493e628bf727742ffdd7ff8e534d
             conn = psycopg2.connect(conn_str)
             cur = conn.cursor()
             cur.execute('SELECT max(index) FROM day_trip_table_city;')
