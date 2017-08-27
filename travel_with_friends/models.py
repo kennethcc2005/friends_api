@@ -23,6 +23,8 @@ CREATE EXTENSION postgis;
 CREATE EXTENSION pg_trgm;
 ALTER TABLE poi_detail_table_v2 ADD COLUMN geom geometry(POINT,4326);
 UPDATE poi_detail_table_v2 SET geom = ST_SetSRID(ST_MakePoint(coord_long,coord_lat),4326);
+ALTER TABLE nightlife_table ADD COLUMN geom geometry(POINT,4326);
+UPDATE nightlife_table SET geom = ST_SetSRID(ST_MakePoint(lon,lat),4326)
 CREATE INDEX idx_poi_geom ON poi_detail_table_v2 USING GIST(geom);
 
 SELECT name, city, state
