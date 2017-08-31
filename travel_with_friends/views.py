@@ -8,7 +8,8 @@ from travel_with_friends.serializers import UserSerializer, FullTripSearchSerial
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
         IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
-        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, AddSeasonalEventsSerializer
+        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, AddSeasonalEventsSerializer,\
+        SendEmailFullTripSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -27,6 +28,7 @@ from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import csrf_exempt
 import trip_update
 import night_trip
+from send_trip_email import send_email_full_trip
 '''
 Get Token:
 http post http://127.0.0.1:8000/account/get_auth_token/ username=test password=test1234
@@ -482,13 +484,26 @@ class AddSeasonalEvents(APIView):
             description= data['description']
             season= data['season']
             link= data['link']
+            print poi_name,city,state,photo,photo_source,description,season,link
             return Response({
                 "ok": poi_name + " inserted."
             })
         else:
             return Response({"error": serializer.errors}) 
 
-
+class SendEmailFullTrip(APIView):
+    def post(self, request):
+        data = request.data
+        serializer = SendEmailFullTripSerializer(data=data)
+        if serializer.is_valid():
+            email_address = data['email']
+            full_trip_id = data['full_trip_id']
+            send_email_full_trip(email_address,full_trip_id)
+            return Response({
+                "ok": 'sending trip %s to %s'%(email_address,full_trip_id)
+            })
+        else:
+            return Response({"error": serializer.errors}) 
 
 
 class IPGeoLocation(APIView):

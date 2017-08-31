@@ -13,17 +13,28 @@ with open(current_path + '/api_key_list.config') as key_file:
 api_key = api_key_list["distance_api_key_list"]
 conn_str = api_key_list["conn_str"]
 
-def search_query(distance):
+def search_address_history_bool(address):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    # cur.execute('SELECT avg(num_reviews)  FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;',(lon,lat,5))
+    conn.close()
     return 
-def nightlife_city_search(address,city, state, full_trip_id):
+    
+def nightlife_city_search(address,city, state, full_trip_id, lon=None, lat=None):
     '''
     Get the default full trip data for each city(county)
     '''
-    print 'address:', address, city, state
-    geolocator = Nominatim()
-    location = geolocator.geocode(address)
-    lat, lon = location.latitude, location.longitude
-    print 'lat, lon',lat, lon
+    if address != 'undefined':
+        if search_address_history_bool(address):
+            conn = psycopg2.connect(conn_str)
+            cur = conn.cursor()
+            # cur.execute('SELECT avg(num_reviews)  FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;',(lon,lat,5))
+            conn.close()
+            return [],[]
+    if not (lon and lat):
+        geolocator = Nominatim()
+        location = geolocator.geocode(address)
+        lat, lon = location.latitude, location.longitude
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
     cur.execute('SELECT avg(num_reviews)  FROM nightlife_table WHERE ST_Distance_Sphere(geom, ST_MakePoint(%s,%s)) <= %s * 1609.34;',(lon,lat,5))

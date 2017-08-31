@@ -40,6 +40,7 @@ urlpatterns = [
 
     url(r'^iplocation/$', views.IPGeoLocation.as_view()),
     url(r'^add_trip/seasonal_events/$', views.AddSeasonalEvents.as_view(), name='add_seasonal_events'), 
+    url(r'^send_email/full_trip/$', views.SendEmailFullTrip.as_view(), name='send_email_full_trip'), 
 
     # url(r'^api/', include(router.urls)),
     # url(r'^users/create_user', views.CreateUserView),

@@ -65,6 +65,11 @@ class AddSeasonalEventsSerializer(serializers.Serializer):
     description= serializers.CharField()
     season= serializers.CharField()
     link= serializers.CharField()
+
+class SendEmailFullTripSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    full_trip_id = serializers.CharField()
+    
 class IPGeoLocationSerializer(serializers.Serializer):
     ip = serializers.CharField()
 # class UserSerializer(serializers.ModelSerializer):
