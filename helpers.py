@@ -83,15 +83,7 @@ def create_big_med_small_lst(day_labels, city_poi_list_info, v):
                 med_ix.append(ix)
             else:
                 small_ix.append(ix)
-    # print big_ix, med_ix, small_ix
-     
-    
-    city_poi_list_info =  np.array(city_poi_list_info[:,:-2].astype(np.float).tolist())
-    # print city_poi_list_info, type(city_poi_list_info)
-    big_ = sorted_events(city_poi_list_info, big_ix)
-    med_ = sorted_events(city_poi_list_info, med_ix)
-    small_ = sorted_events(city_poi_list_info, small_ix)
-    return big_, med_, small_
+    return big_ix, med_ix, small_ix
 
 def find_county(state, city):
     '''
@@ -167,11 +159,8 @@ def get_event_ids_list(trip_locations_id):
     cur = conn.cursor()
     cur.execute("SELECT event_ids,event_type FROM day_trip_table WHERE trip_locations_id = '%s';" % (trip_locations_id))
     event_ids, event_type = cur.fetchone()
-    print "At helper.get_event_ids_list before convert_event_ids_to_lst", event_ids, type(event_ids)
-    if type(event_ids) != list:
-        event_ids = ast.literal_eval(event_ids)
-    # event_ids = convert_event_ids_to_lst(event_ids)
-    print "At helper.get_event_ids_list after convert_event_ids_to_lst", event_ids, type(event_ids)
+    event_ids = json.loads(event_ids)
+    event_ids = map(int,event_ids)
     conn.close()
     return event_ids, event_type
 
@@ -182,13 +171,10 @@ def get_event_ids_list_city(trip_locations_id):
     '''
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
-    cur.execute("SELECT event_ids,event_type FROM day_trip_table_city WHERE trip_locations_id = '%s';" % (trip_locations_id))
+    cur.execute("SELECT event_ids,event_type FROM day_trip_table_city WHERE trip_locations_id = %s;",(trip_locations_id,))
     event_ids, event_type = cur.fetchone()
-    print "At helper.get_event_ids_list before convert_event_ids_to_lst", event_ids, type(event_ids)
-    if type(event_ids) != list:
-        event_ids = ast.literal_eval(event_ids)
-    # event_ids = convert_event_ids_to_lst(event_ids)
-    print "At helper.get_event_ids_list after convert_event_ids_to_lst", event_ids, type(event_ids)
+    event_ids = json.loads(event_ids)
+    event_ids = map(int,event_ids)
     conn.close()
     return event_ids, event_type
 
@@ -197,12 +183,9 @@ def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type=
     Get matrix cloest distance
     '''
     if new_event_id or not event_ids:
-        # event_ids, event_type = get_event_ids_list(trip_locations_id)
         event_ids, event_type = get_event_ids_list_city(trip_locations_id)
-        print 'event_ids: ', event_ids, type(event_ids), trip_locations_id
         if new_event_id:
-            event_ids.append(new_event_id)
-            
+            event_ids.append(int(new_event_id))
     conn = psycopg2.connect(conn_str)
     cur = conn.cursor()
     points=[]
@@ -219,20 +202,11 @@ def db_event_cloest_distance(trip_locations_id=None, event_ids=None, event_type=
     n, D = distance.mk_matrix(points[:,1:3], distance.geopy_dist)
     if len(points) >= 3:
         # if event_type == 'add':
-        
         tour = distance.nearest_neighbor(n, 0, D)
         # create a greedy tour, visiting city 'i' first
         z = distance.length(tour, D)
         z = distance.localsearch(tour, z, D)
         return np.array(event_ids)[tour], event_type
-
-        #need to figure out other cases
-        # else:
-        #     tour = distance.nearest_neighbor(n, 0, D)
-        #     # create a greedy tour, visiting city 'i' first
-        #     z = distance.length(tour, D)
-        #     z = distance.localsearch(tour, z, D)
-        #     return np.array(event_ids)[tour], event_type
     else:
         return np.array(event_ids), event_type
 
@@ -321,14 +295,17 @@ def check_travel_time_id(new_id):
         return False
 
 #May need to improve by adding #reviews in this. :)
-def sorted_events(info,ix):
+def sorted_events(info,ix ,old_ix):
     '''
     find the event_id, ranking AND review_score, num_reviews columns
     sorted base on ranking then review_score, num_reviews
     
     return sorted list 
     '''
+
     event_ = info[ix][:, [0, 4, 5, 6]]
+    if old_ix != []:
+        event_ = np.concatenate((event_, old_ix),axis=0)
     return np.array(sorted(event_, key=lambda x: (x[1], -x[3], -x[2])))
 
 #Need to make this more efficient
