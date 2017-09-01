@@ -370,7 +370,7 @@ def db_outside_google_driving_walking_time(city_id, start_coord_lat, start_coord
             walking_result = str(walking_result).replace("'", '"')
             orig_name = orig_name.replace("'","''")
             dest_name = dest_name.replace("'","''")
-            cur.execute("INSERT INTO google_travel_time_table VALUES (%i, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s', '%s', '%s', %s, %s);" % (index, id_, orig_name, orig_idx, dest_name, dest_idx, orig_coord_lat, orig_coord_long, dest_coord_long, dest_coord_long, orig_coords, dest_coords, google_driving_url, google_walking_url, str(driving_result), str(walking_result), google_driving_time, google_walking_time))
+            cur.execute("INSERT INTO google_travel_time_table VALUES (%i, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s);", (index, id_, orig_name, orig_idx, dest_name, dest_idx, orig_coord_lat, orig_coord_long, dest_coord_long, dest_coord_long, orig_coords, dest_coords, google_driving_url, google_walking_url, json.dumps(driving_result), json.dumps(walking_result), google_driving_time, google_walking_time))
             conn.commit()
             name_list.append(orig_name + " to " + dest_name)
             google_ids.append(id_)
