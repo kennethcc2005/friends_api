@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^update_outside_trip/add_search/$', views.OutsideTripAddSearch.as_view(), name='Outside_Trip_Add_Search'), 
     url(r'^night_trip/nightlife_city_search/$', views.NightlifeCitySearch.as_view(), name='Nightlife_Search'), 
 
+    url(r'^new_poi/seasonal/$', views.NewPOISeasonal.as_view(), name='New_POI_Seasonal'),     
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^login/$', local_views.get_auth_token, name='login'),
     # url(r'^logout/$', local_views.logout_user, name='logout'),
@@ -39,7 +40,6 @@ urlpatterns = [
     url(r'^account/register', views.create_auth, name='register_user'),
 
     url(r'^iplocation/$', views.IPGeoLocation.as_view()),
-    url(r'^add_trip/seasonal_events/$', views.AddSeasonalEvents.as_view(), name='add_seasonal_events'), 
     url(r'^send_email/full_trip/$', views.SendEmailFullTrip.as_view(), name='send_email_full_trip'), 
 
     # url(r'^api/', include(router.urls)),

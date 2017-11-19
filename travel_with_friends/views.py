@@ -8,7 +8,7 @@ from travel_with_friends.serializers import UserSerializer, FullTripSearchSerial
         OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
         FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
         IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
-        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, AddSeasonalEventsSerializer,\
+        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, NewPOISeasonalSerializer,\
         SendEmailFullTripSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
@@ -29,6 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 import trip_update
 import night_trip
 from send_trip_email import send_email_full_trip
+from new_edit_poi import new_poi_seasonal
 '''
 Get Token:
 http post http://127.0.0.1:8000/account/get_auth_token/ username=test password=test1234
@@ -471,25 +472,21 @@ class NightlifeCitySearch(APIView):
         else:
             return Response({"error": serializer.errors}) 
 
-class AddSeasonalEvents(APIView):
+class NewPOISeasonal(APIView):
     def post(self, request):
         data = request.data
-        serializer = AddSeasonalEventsSerializer(data=data)
+        serializer = NewPOISeasonalSerializer(data=data)
         if serializer.is_valid():
             poi_name = data['poi_name']
-            city= data['city']
-            state= data['state']
-            photo= data['photo']
-            photo_source= data['photo_source']
-            description= data['description']
-            season= data['season']
-            link= data['link']
-            print poi_name,city,state,photo,photo_source,description,season,link
-            return Response({
-                "ok": poi_name + " inserted."
-            })
+            result = new_poi_seasonal(data)
+            if result: 
+                return Response({
+                    "ok": poi_name + " inserted."
+                },200)
+            else: 
+                return Response({"error": 'data not complete'},404) 
         else:
-            return Response({"error": serializer.errors}) 
+            return Response({"error": serializer.errors},404) 
 
 class SendEmailFullTrip(APIView):
     def post(self, request):

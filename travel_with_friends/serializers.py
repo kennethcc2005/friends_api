@@ -56,13 +56,12 @@ class NightlifeCitySearchSerializer(serializers.Serializer):
     hotel_address= serializers.CharField()
     full_trip_id = serializers.CharField()
 
-class AddSeasonalEventsSerializer(serializers.Serializer):
+class NewPOISeasonalSerializer(serializers.Serializer):
     poi_name = serializers.CharField()
     city= serializers.CharField()
     state= serializers.CharField()
-    photo= serializers.CharField()
-    photo_source= serializers.CharField()
-    description= serializers.CharField()
+    photo_src= serializers.CharField()
+    desc= serializers.CharField()
     season= serializers.CharField()
     link= serializers.CharField()
 
