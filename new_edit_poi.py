@@ -90,6 +90,10 @@ def new_poi_seasonal(data):
     description text,
     season VARCHAR (25),
     link text,
+    visit_length double precision,
+    rating double precision,
+    num_reviews big int,
+    fee boolean,
     additional_info text
     );
     '''
@@ -99,6 +103,9 @@ def new_poi_seasonal(data):
         desc = data['desc'] if 'desc' in data else None
         link = data['link'] if 'link' in data else None
         add_info = data['additional_info'] if 'additional_info' in data else None
+        visit_length = data['visit_length'] if 'visit_length' in data else None
+        num_reviews = data['num_reviews'] if 'num_reviews' in data else None
+        fee = data['fee'] if 'fee' in data else None
         #Check City and State field and fill from address if needed
         city, state, address, postal_code = get_city_state_address(data)
         #Check POI coordinates and fill from address if needed
@@ -114,10 +121,9 @@ def new_poi_seasonal(data):
             if result != None:
                 (index, name) = result
                 cur.execute('''UPDATE seasonal_poi 
-                                  SET (name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link,
-                                      additional_info) = (%s, %s, %s, %s, %f, %f, %s, %s, %s, %s, %s) 
+                                  SET (name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length, num_reviews, rating,       fee, additional_info) = (%s, %s, %s, %s, %f, %f, %s, %s, %s, %s, %f, %d, %f, %d, %s) 
                                 WHERE index = %d;''', 
-                            (name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, add_info, index))  
+                            (name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, visit_length, num_reviews, rating, fee, add_info, index))  
         else:
             cur.execute("SELECT max(index) FROM seasonal_poi;")
             result = cur.fetchone()
@@ -125,9 +131,9 @@ def new_poi_seasonal(data):
                 new_index = result[0] + 1
             else:
                 new_index = 0
-            cur.execute('''INSERT INTO seasonal_poi 
-                           VALUES (%d, %s, %s, %s, %s, %f, %f, %s, %s, %s, %s, %s);''', 
-                        (new_index, name, address, city, state, coord_lat, coord_long, s3_image_filename, desc, season, link, add_info))
+            cur.execute('''INSERT INTO seasonal_poi (index, name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length,                         num_reviews, rating, fee, additional_info)
+                           VALUES (%d, s, %s, %s, %s, %f, %f, %s, %s, %s, %s, %f, %d, %f, %d, %s);''', 
+                        (new_index, name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, visit_length, num_reviews, rating, fee, add_info))
         conn.commit()
         conn.close()
         return True
