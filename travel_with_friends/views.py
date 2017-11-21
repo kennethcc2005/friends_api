@@ -5,11 +5,11 @@ from __future__ import unicode_literals
 from rest_framework import generics, status
 from django.contrib.auth.models import User
 from travel_with_friends.serializers import UserSerializer, FullTripSearchSerializer, \
-        OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
-        FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
-        IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
-        FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, NewPOISeasonalSerializer,\
-        SendEmailFullTripSerializer
+    OutsideTripSearchSerializer,CityStateSearchSerializer, FullTripSuggestDeleteSerializer, \
+    FullTripAddSearchSerializer, FullTripAddEventSerializer, FullTripSuggestConfirmSerializer, \
+    IPGeoLocationSerializer, OutsideTripAddSearchSerializer, FullTripAutoAddEventSerializer,\
+    FullTripSuggestPopSearchSerializer, NightlifeCitySearchSerializer, NewPOISeasonalSerializer,\
+    SendEmailFullTripSerializer, UpdatePOIAddressSerializer, NewPOIDetailSerializer
 from rest_framework import permissions
 from travel_with_friends.permissions import IsOwnerOrReadOnly, IsStaffOrTargetUser
 from rest_framework.decorators import api_view
@@ -29,7 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 import trip_update
 import night_trip
 from send_trip_email import send_email_full_trip
-from new_edit_poi import new_poi_seasonal
+from new_edit_poi import new_poi_seasonal, udpate_poi_address
 '''
 Get Token:
 http post http://127.0.0.1:8000/account/get_auth_token/ username=test password=test1234
@@ -473,6 +473,7 @@ class NightlifeCitySearch(APIView):
             return Response({"error": serializer.errors}) 
 
 class NewPOISeasonal(APIView):
+    #Admin append new seasonal poi to database table
     def post(self, request):
         data = request.data
         serializer = NewPOISeasonalSerializer(data=data)
@@ -482,6 +483,38 @@ class NewPOISeasonal(APIView):
             if result: 
                 return Response({
                     "ok": poi_name + " inserted."
+                },200)
+            else: 
+                return Response({"error": 'data not complete'},404) 
+        else:
+            return Response({"error": serializer.errors},404) 
+
+class UpdatePOIAddress(APIView):
+    #Admin update poi address in database table
+    def post(self, request):
+        data = request.data
+        serializer = UpdatePOIAddressSerializer(data=data)
+        if serializer.is_valid():
+            result = udpate_poi_address(data)
+            if result: 
+                return Response({
+                    "ok": "updated poi address."
+                },200)
+            else: 
+                return Response({"error": 'data not complete'},404) 
+        else:
+            return Response({"error": serializer.errors},404) 
+
+class NewPOIDetail(APIView):
+    #Admin update poi address in database table
+    def post(self, request):
+        data = request.data
+        serializer = NewPOIDetailSerializer(data=data)
+        if serializer.is_valid():
+            result = new_poi_detail(data)
+            if result: 
+                return Response({
+                    "ok": "Added new poi detail."
                 },200)
             else: 
                 return Response({"error": 'data not complete'},404) 

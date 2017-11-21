@@ -58,12 +58,21 @@ class NightlifeCitySearchSerializer(serializers.Serializer):
 
 class NewPOISeasonalSerializer(serializers.Serializer):
     poi_name = serializers.CharField()
-    city= serializers.CharField()
-    state= serializers.CharField()
-    photo_src= serializers.CharField()
-    desc= serializers.CharField()
     season= serializers.CharField()
-    link= serializers.CharField()
+
+class UpdatePOIAddressSerializer(serializers.Serializer):
+    address= serializers.CharField()
+
+class NewPOIDetailSerializer(serializers.Serializer):
+    poi_name = serializers.CharField()
+    address = serializers.CharField()
+    desc = serializers.CharField()
+    photo_src = serializers.CharField()
+    desc = serializers.CharField()
+    poi_type = serializers.CharField()
+    visit_length = serializers.CharField()
+    rating = serializers.CharField()
+    num_review = serializers.CharField()
 
 class SendEmailFullTripSerializer(serializers.Serializer):
     email = serializers.CharField()

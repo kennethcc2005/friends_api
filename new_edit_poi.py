@@ -26,15 +26,17 @@ def get_city_state_address(data):
     '''
     city = data['city'] if 'city' in data else None
     state = data['state'] if 'state' in data else None
+    postal_code = None
     if 'address' in data:
         address = data['address']
         if (city == None) and (Counters(address)[','] >= 2):
             add_lst = data['address'].split(',')
             state = add_lst[-1].strip().split(' ')[0]
             city = add_lst[-2].strip() 
+            postal_code = add_lst[-1].strip().split(' ')[1]
     else:
         address = None
-    return city, state, address
+    return city, state, postal_code, address
 
 def get_coords(data):
     '''
@@ -98,7 +100,7 @@ def new_poi_seasonal(data):
         link = data['link'] if 'link' in data else None
         add_info = data['additional_info'] if 'additional_info' in data else None
         #Check City and State field and fill from address if needed
-        city, state, address = get_city_state_address(data)
+        city, state, address, postal_code = get_city_state_address(data)
         #Check POI coordinates and fill from address if needed
         coord_lat, coord_long = get_coords(data)
         #Get Photo and Save to S3 and get address
@@ -140,7 +142,7 @@ def udpate_poi_address(data):
     conn = psycopg2.connect(conn_str)            
     cur = conn.cursor()
     #Check City and State field and fill from address if needed
-    city, state, address = get_city_state_address(data)
+    city, state, address, postal_code = get_city_state_address(data)
     #Check POI coordinates and fill from address if needed
     coord_lat, coord_long = get_coords(data)
     if ('poi_id' not in data) and ('poi_name' not in data):
@@ -156,16 +158,16 @@ def udpate_poi_address(data):
                     (name))  
         name_lst = cur.fetchall()
         if len(name_lst) != 1:
-            print('Update POI Error: POI name has multiple results!')  
+            print('Update POI Error: POI name has multiple results or no results!')  
             conn.close()                                  
             return False
         else:
             index = name_lst[0][0]
             #read dict data and check it is in the psql or not
             cur.execute('''UPDATE poi_detail_table 
-                              SET (address, city, state, coord_lat, coord_long) = (%s, %s, %s, %f, %f) 
+                              SET (address, city, state, coord_lat, coord_long, postal_code) = (%s, %s, %s, %f, %f, %s) 
                             WHERE index = %d and name = %s;''',
-                        (address, city, state, coord_lat, coord_long, index, name))  
+                        (address, city, state, coord_lat, coord_long, postal_code, index, name))  
             conn.commit()
     elif ('poi_id' in data) and ('poi_name' in data):
         index = data['poi_id']
@@ -178,9 +180,9 @@ def udpate_poi_address(data):
         result = cur.fetchone()
         if result != None:
             cur.execute('''UPDATE poi_detail_table 
-                              SET (address, city, state, coord_lat, coord_long) = (%s, %s, %s, %f, %f) 
+                              SET (address, city, state, coord_lat, coord_long, postal_code) = (%s, %s, %s, %f, %f, %s) 
                             WHERE index = %d and name = %s;''',
-                        (address, city, state, coord_lat, coord_long, index, name))  
+                        (address, city, state, coord_lat, coord_long, postal_code, index, name))  
             conn.commit()
         else:
             print('Update POI Error: POI ID and name not match each other!') 
@@ -195,9 +197,9 @@ def udpate_poi_address(data):
         result = cur.fetchone()
         if result != None:
             cur.execute('''UPDATE poi_detail_table 
-                              SET (address, city, state, coord_lat, coord_long) = (%s, %s, %s, %f, %f) 
+                              SET (address, city, state, coord_lat, coord_long, postal_code) = (%s, %s, %s, %f, %f, %s) 
                             WHERE index = %d;''',
-                        (address, city, state, coord_lat, coord_long, index))  
+                        (address, city, state, coord_lat, coord_long, postal_code, index))  
             conn.commit()
         else:
             print('Update POI Error: POI ID not exist!')
@@ -205,4 +207,45 @@ def udpate_poi_address(data):
             return False
     conn.close()
     return True
-            
+        
+def new_poi_detail(data):
+    '''
+    Add new POI detail, return False if information not enough.
+    '''
+    try:
+        conn = psycopg2.connect(conn_str)            
+        cur = conn.cursor()
+        #Check City and State field and fill from address if needed
+        city, state, address, postal_code = get_city_state_address(data)
+        #Check POI coordinates and fill from address if needed
+        coord_lat, coord_long = get_coords(data)
+        photo_url = upload_and_get_img_url(data) if 'photo_src' in data else None
+        #If poi id not included and poi name has have too many results. return false
+        name = data['poi_name']
+        cur.execute('''SELECT index, name 
+                            FROM poi_detail_table 
+                        WHERE name = %s 
+                            AND city = %s
+                            AND state = %s;''', 
+                    (name, city, state))  
+        resuslt = cur.fetchone()
+        if result != None:
+            print('Update POI Error: POI name, city, address already exisit!', name, city, state)  
+            conn.close()                                  
+            return False
+        else:
+            cur.execute('''SELECT max(index)
+                            FROM poi_detail_table;''')
+            result = cur.fetchone()
+            index = result[0] + 1 if result != None else 0  
+            null = None
+            #read dict data and check it is in the psql or not
+            cur.execute('''INSERT INTO poi_detail_table (index, address, adjusted_visit_length, city, coord_lat, coord_long, country,                                                     county, description, fee, name, num_reviews, poi_type, postal_code, ranking, review_score, state, state_abb, street_address, tag,                       url, icon_url, check_full_address, img_url, interesting)
+                           VALUES (%d, %s, %f, %s, %f, %f, %s,  %s, %f, %f, %s, %s, %s, %s, %s);''', 
+                        (index, address, data['visit_length'], city, coord_lat, coord_long, 'United States', null, data['desc'], data['fee'], data['name'], data['num_reviews'], data['poi_type'], postal_code, null, data['rating'], null, state, null, null, data['link'], photo_url, 1, photo_url, True))
+            conn.commit()
+        conn.close()
+        return True
+    except:
+        print('data not completed! error!', data)
+        return False
