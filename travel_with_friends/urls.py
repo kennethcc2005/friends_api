@@ -33,7 +33,7 @@ urlpatterns = [
 
     url(r'^new_poi/seasonal/$', views.NewPOISeasonal.as_view(), name='New_POI_Seasonal'), 
     url(r'^new_poi/new/$', views.NewPOIDetail.as_view(), name='New_POI_Detail'),     
-    url(r'^update_poi/$', views.UpdatePOIAddress.as_view(), nam='Update_POI_Address'),
+    url(r'^update_poi/$', views.UpdatePOIAddress.as_view(), name='Update_POI_Address'),
     
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^login/$', local_views.get_auth_token, name='login'),
