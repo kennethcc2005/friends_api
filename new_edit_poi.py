@@ -104,7 +104,8 @@ def new_poi_seasonal(data):
     rating double precision,
     num_reviews big int,
     fee boolean,
-    additional_info text
+    additional_info text,
+    poi_type VARCHAR
     );
     '''
     # try:
@@ -118,7 +119,7 @@ def new_poi_seasonal(data):
     visit_length = data['visit_length'] if data['visit_length'] else None
     num_reviews = data['num_reviews'] if data['num_reviews'] else None
     fee = data['fee'] if data['fee'] else None
-    
+    poi_type = data['poi_type'] if data['poi_type'] else None
     #Check City and State field and fill from address if needed
     city, state, postal_code, address = get_city_state_address(data)
     #Check POI coordinates and fill from address if needed
@@ -135,9 +136,9 @@ def new_poi_seasonal(data):
         if result != None:
             (index, name) = result
             cur.execute('''UPDATE seasonal_poi 
-                                SET (name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length, num_reviews, rating,       fee, additional_info) = (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                                SET (name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length, num_reviews, rating, fee, additional_info, poi_type) = (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                             WHERE index = %s;''', 
-                        (name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, visit_length, num_reviews, rating, fee, add_info, index))  
+                        (name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, visit_length, num_reviews, rating, fee, add_info, poi_type, index))  
     else:
         cur.execute("SELECT max(index) FROM seasonal_poi;")
         result = cur.fetchone()[0]
@@ -145,10 +146,10 @@ def new_poi_seasonal(data):
             new_index = result + 1
         else:
             new_index = 0
-        print '''INSERT INTO seasonal_poi (index, name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length,                         num_reviews, rating, fee, additional_info)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''%(new_index, name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, int(visit_length), float(num_reviews), float(rating), fee, add_info)
-        cur.execute('''INSERT INTO seasonal_poi (index, name, address, city, state, coord_lat, coord_long, photo_url, description, season, link, visit_length,                         num_reviews, rating, fee, additional_info)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);''', (new_index, name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, int(visit_length), float(num_reviews), float(rating), fee, add_info))
+        print '''INSERT INTO seasonal_poi (index, name, address, city, state, coord_lat, coord_long, photo_url, descrption, season, link, visit_length,                         num_reviews, rating, fee, additional_info, poi_type)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''%(new_index, name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, int(visit_length), float(num_reviews), float(rating), fee, add_info, poi_type)
+        cur.execute('''INSERT INTO seasonal_poi (index, name, address, city, state, coord_lat, coord_long, photo_url, description, season, link, visit_length, num_reviews, rating, fee, additional_info, poi_type)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);''', (new_index, name, address, city, state, coord_long, coord_lat, s3_image_filename, desc, season, link, int(visit_length), float(num_reviews), float(rating), fee, add_info, poi_type))
         print('check now!zz', cur.query)
         
     conn.commit()
